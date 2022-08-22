@@ -101,7 +101,7 @@ Object {
   "starting_hcs": 0,
   "starting_pohs": 0,
   "swift_sail": true,
-  "sword_mode": "Start with Hero's Sword",
+  "sword_mode": "No Starting Sword",
   "version": "1.9.0_b5c16e4",
 }
 `;
