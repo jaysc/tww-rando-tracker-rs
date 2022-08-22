@@ -1,45 +1,25 @@
 import _ from 'lodash';
+import PropTypes from 'prop-types';
 import React from 'react';
-import { ToastContainer, toast } from 'react-toastify';
 
-import HEADER_IMAGE from '../images/header.png';
 import Permalink from '../services/permalink';
+import Settings from '../services/settings';
 
 import DropdownOptionInput from './dropdown-option-input';
+import KeyDownWrapper from './key-down-wrapper';
 import OptionsTable from './options-table';
-import Storage from './storage';
 import ToggleOptionInput from './toggle-option-input';
 
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-toggle/style.css';
+class SettingsWindow extends React.PureComponent {
+  constructor(props) {
+    super(props);
 
-export default class Launcher extends React.PureComponent {
-  static openTrackerWindow(route) {
-    const windowWidth = 1507;
-    const windowHeight = 550;
+    const { options } = Settings.readAll();
 
-    window.open(
-      `#/tracker${route}`,
-      '_blank',
-      `width=${windowWidth},height=${windowHeight},titlebar=0,menubar=0,toolbar=0`,
-    );
-  }
+    this.state = { options };
 
-  constructor() {
-    super();
-
-    const permalink = Permalink.DEFAULT_PERMALINK;
-    const options = Permalink.decode(permalink);
-
-    this.state = {
-      options,
-      permalink,
-    };
-
-    this.launchNewTracker = this.launchNewTracker.bind(this);
-    this.loadFromFile = this.loadFromFile.bind(this);
-    this.loadFromSave = this.loadFromSave.bind(this);
     this.setOptionValue = this.setOptionValue.bind(this);
+    this.applySettings = this.applySettings.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -51,27 +31,12 @@ export default class Launcher extends React.PureComponent {
   setOptionValue(optionName, newValue) {
     const { options } = this.state;
 
-    _.set(options, optionName, newValue);
+    const newOptions = _.cloneDeep(options);
 
-    this.updateOptions(options);
-  }
-
-  loadPermalink(permalinkInput) {
-    try {
-      const options = Permalink.decode(permalinkInput);
-
-      this.updateOptions(options);
-    } catch (err) {
-      toast.error('Invalid permalink!');
-    }
-  }
-
-  updateOptions(options) {
-    const permalink = Permalink.encode(options);
+    _.set(newOptions, optionName, newValue);
 
     this.setState({
-      options,
-      permalink,
+      options: newOptions,
     });
   }
 
@@ -100,24 +65,6 @@ export default class Launcher extends React.PureComponent {
         optionValue={optionValue}
         setOptionValue={this.setOptionValue}
       />
-    );
-  }
-
-  permalinkContainer() {
-    const { permalink } = this.state;
-
-    return (
-      <div className="permalink-container">
-        <div className="permalink-label">Permalink:</div>
-        <div className="permalink-input">
-          <input
-            placeholder="Permalink"
-            className="permalink"
-            onChange={(event) => this.loadPermalink(event.target.value)}
-            value={permalink}
-          />
-        </div>
-      </div>
     );
   }
 
@@ -234,10 +181,6 @@ export default class Launcher extends React.PureComponent {
             labelText: 'Key-Lunacy',
             optionName: Permalink.OPTIONS.KEYLUNACY,
           }),
-          this.dropdownInput({
-            labelText: 'Triforce Shards to Start With',
-            optionName: Permalink.OPTIONS.NUM_STARTING_TRIFORCE_SHARDS,
-          }),
           this.toggleInput({
             labelText: 'Race Mode',
             optionName: Permalink.OPTIONS.RACE_MODE,
@@ -270,88 +213,56 @@ export default class Launcher extends React.PureComponent {
     );
   }
 
-  launchNewTracker() {
-    const encodedPermalink = this.encodedPermalink();
+  applySettings() {
+    const { options } = this.state;
+    const { updateLogic, toggleSettingsWindow } = this.props;
 
-    Launcher.openTrackerWindow(`/new/${encodedPermalink}`);
-  }
-
-  loadFromSave() {
-    const encodedPermalink = this.encodedPermalink();
-
-    Launcher.openTrackerWindow(`/load/${encodedPermalink}`);
-  }
-
-  encodedPermalink() {
-    const { permalink } = this.state;
-
-    return encodeURIComponent(permalink);
-  }
-
-  async loadFromFile() {
-    await Storage.loadFileAndStore();
-
-    this.loadFromSave();
-  }
-
-  launchButtonContainer() {
-    return (
-      <div className="launcher-button-container">
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.launchNewTracker}
-        >
-          Launch New Tracker
-        </button>
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.loadFromSave}
-        >
-          Load From Autosave
-        </button>
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.loadFromFile}
-        >
-          Load From File
-        </button>
-      </div>
-    );
+    updateLogic(options);
+    toggleSettingsWindow();
   }
 
   render() {
+    const {
+      toggleSettingsWindow,
+    } = this.props;
+
     return (
-      <div className="full-container">
-        <div className="launcher-container">
-          <div className="header">
-            <img
-              src={HEADER_IMAGE}
-              alt="The Legend of Zelda: The Wind Waker Randomizer Tracker"
-              draggable={false}
-            />
+      <div className="settings-window">
+        <div className="settings-top-row">
+          <div className="settings-title">Settings</div>
+          <div
+            className="close-button"
+            onClick={toggleSettingsWindow}
+            onKeyDown={KeyDownWrapper.onSpaceKey(toggleSettingsWindow)}
+            role="button"
+            tabIndex="0"
+          >
+            X Close
           </div>
+        </div>
+        <div className="settings-wrapper">
           <div className="settings">
-            {this.permalinkContainer()}
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
             {this.convenienceTweaksTable()}
-            {this.launchButtonContainer()}
           </div>
-          <div className="attribution">
-            <span>Maintained by Jaysc/Colfra • Check out the </span>
-            <a href="https://discord.gg/HQP3cAF">TWW Randomizer Racing discord</a>
-          </div>
-          <div className="attribution">
-            <span>Based on code by wooferzfg • Source Code on </span>
-            <a href="https://github.com/wooferzfg/tww-rando-tracker">GitHub</a>
-            <span> • Original Tracker by BigDunka</span>
+          <div className="settings-apply">
+            <button
+              onClick={this.applySettings}
+              type="button"
+            >
+              Apply
+            </button>
           </div>
         </div>
-        <ToastContainer />
       </div>
     );
   }
 }
+
+SettingsWindow.propTypes = {
+  toggleSettingsWindow: PropTypes.func.isRequired,
+  updateLogic: PropTypes.func.isRequired,
+};
+
+export default SettingsWindow;

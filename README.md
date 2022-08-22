@@ -1,8 +1,12 @@
-# TWW Randomizer Tracker
+# TWW Randomizer Tracker RS
 
-[![Build Status](https://github.com/wooferzfg/tww-rando-tracker/workflows/CI/badge.svg)](https://github.com/wooferzfg/tww-rando-tracker/actions)
+This tracker is based on source code written by [wooferzfg](https://github.com/wooferzfg).
 
-This is a tracker for [The Wind Waker Randomizer](https://github.com/LagoLunatic/wwrando). It's available at [wooferzfg.me/tww-rando-tracker](https://www.wooferzfg.me/tww-rando-tracker/).
+You can find the original source code [here](https://github.com/wooferzfg/tww-rando-tracker).
+
+----
+
+This is a tracker for [The Wind Waker Randomizer Random Settings](https://github.com/tanjo3/wwrando/releases).
 
 ## Build Instructions
 

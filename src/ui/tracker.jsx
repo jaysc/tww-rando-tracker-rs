@@ -5,6 +5,8 @@ import { Oval } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 
 import LogicHelper from '../services/logic-helper';
+import Settings from '../services/settings';
+import Spheres from '../services/spheres';
 import TrackerController from '../services/tracker-controller';
 
 import Buttons from './buttons';
@@ -12,6 +14,7 @@ import ColorPickerWindow from './color-picker-window';
 import Images from './images';
 import ItemsTable from './items-table';
 import LocationsTable from './locations-table';
+import SettingsWindow from './settings-window';
 import SphereTracking from './sphere-tracking';
 import Statistics from './statistics';
 import Storage from './storage';
@@ -38,6 +41,7 @@ class Tracker extends React.PureComponent {
       openedExit: null,
       openedLocation: null,
       openedLocationIsDungeon: null,
+      settingsWindowOpen: false,
       trackSpheres: false,
     };
 
@@ -52,11 +56,13 @@ class Tracker extends React.PureComponent {
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
     this.toggleLocationChecked = this.toggleLocationChecked.bind(this);
     this.toggleOnlyProgressLocations = this.toggleOnlyProgressLocations.bind(this);
+    this.toggleSettingsWindow = this.toggleSettingsWindow.bind(this);
     this.toggleTrackSpheres = this.toggleTrackSpheres.bind(this);
     this.unsetExit = this.unsetExit.bind(this);
     this.unsetLastLocation = this.unsetLastLocation.bind(this);
     this.updateColors = this.updateColors.bind(this);
     this.updateEntranceForExit = this.updateEntranceForExit.bind(this);
+    this.updateLogic = this.updateLogic.bind(this);
     this.updateOpenedExit = this.updateOpenedExit.bind(this);
     this.updateOpenedLocation = this.updateOpenedLocation.bind(this);
   }
@@ -285,6 +291,14 @@ class Tracker extends React.PureComponent {
     });
   }
 
+  toggleSettingsWindow() {
+    const { settingsWindowOpen } = this.state;
+
+    this.setState({
+      settingsWindowOpen: !settingsWindowOpen,
+    });
+  }
+
   toggleTrackSpheres() {
     const { trackSpheres } = this.state;
 
@@ -297,6 +311,19 @@ class Tracker extends React.PureComponent {
 
   updateColors(colorChanges) {
     this.updatePreferences({ colors: colorChanges });
+  }
+
+  async updateLogic(newOptions) {
+    const { logic, trackerState } = this.state;
+
+    Settings.updateOptions(newOptions);
+    await TrackerController.refreshLogic();
+
+    logic.clearCache();
+
+    const newLogic = _.cloneDeep(logic);
+
+    this.setState({ logic: newLogic, spheres: new Spheres(trackerState) });
   }
 
   updatePreferences(preferenceChanges) {
@@ -334,6 +361,7 @@ class Tracker extends React.PureComponent {
       openedLocation,
       openedLocationIsDungeon,
       saveData,
+      settingsWindowOpen,
       spheres,
       trackSpheres,
       trackerState,
@@ -413,17 +441,25 @@ class Tracker extends React.PureComponent {
               updateColors={this.updateColors}
             />
           )}
+          {settingsWindowOpen && (
+            <SettingsWindow
+              toggleSettingsWindow={this.toggleSettingsWindow}
+              updateLogic={this.updateLogic}
+            />
+          )}
           <Buttons
             colorPickerOpen={colorPickerOpen}
             disableLogic={disableLogic}
             entrancesListOpen={entrancesListOpen}
             onlyProgressLocations={onlyProgressLocations}
             saveData={saveData}
+            settingsWindowOpen={settingsWindowOpen}
             trackSpheres={trackSpheres}
             toggleColorPicker={this.toggleColorPicker}
             toggleDisableLogic={this.toggleDisableLogic}
             toggleEntrancesList={this.toggleEntrancesList}
             toggleOnlyProgressLocations={this.toggleOnlyProgressLocations}
+            toggleSettingsWindow={this.toggleSettingsWindow}
             toggleTrackSpheres={this.toggleTrackSpheres}
           />
         </div>
