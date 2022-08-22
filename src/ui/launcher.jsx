@@ -371,11 +371,11 @@ export default class Launcher extends React.PureComponent {
           </div>
           <div className="settings">
             {Launcher.introductionContainer()}
-            {this.launchButtonContainer()}
             {this.permalinkContainer()}
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
             {this.convenienceTweaksTable()}
+            {this.launchButtonContainer()}
           </div>
           <div className="attribution">
             <span>Maintained by Jaysc/Colfra • Check out the </span>

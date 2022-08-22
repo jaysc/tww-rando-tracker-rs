@@ -289,13 +289,22 @@ describe('Settings', () => {
       expect(options).toEqual({ randomize_entrances: true });
 
       Settings.updateOptions({
+        progression_triforce_charts: true,
+        progression_minigames: true,
         progression_tingle_chests: false,
         randomize_entrances: 'Disabled',
+        randomize_charts: 'Enabled',
       });
 
       const { flags: newFlags, options: newOptions } = Settings.readAll();
-      expect(newFlags).toEqual([]);
-      expect(newOptions).toEqual({ progression_tingle_chests: false, randomize_entrances: 'Disabled' });
+      expect(newFlags).toEqual(['Minigame', 'Sunken Treasure']);
+      expect(newOptions).toEqual({
+        progression_triforce_charts: true,
+        progression_minigames: true,
+        progression_tingle_chests: false,
+        randomize_charts: 'Enabled',
+        randomize_entrances: 'Disabled',
+      });
     });
   });
 });
