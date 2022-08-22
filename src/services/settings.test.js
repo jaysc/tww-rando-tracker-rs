@@ -13,11 +13,11 @@ describe('Settings', () => {
   describe('initializeFromPermalink', () => {
     describe('default settings', () => {
       beforeEach(() => {
-        Settings.initializeFromPermalink('MS45LjAAeWVldAAHAQMADgBAAwAAAAAAAQAA');
+        Settings.initializeFromPermalink('MS45LjBfZDk1M2U0NABBAAcBAwBsHgCABhAAAAAQAIIAAAA=');
       });
 
       test('initializes the version', () => {
-        expect(Settings.version).toEqual('1.9.0');
+        expect(Settings.version).toEqual('d953e44');
       });
 
       test('initializes the starting gear', () => {
@@ -41,31 +41,31 @@ describe('Settings', () => {
       });
     });
 
-    describe('when using a development build', () => {
-      beforeEach(() => {
-        // version = 1.9.0_b76f4ae
-        Settings.initializeFromPermalink('MS45LjBfYjc2ZjRhZQBTZWVkAAcBAwAOAEADAAAAAAABAAA=');
-      });
+    // describe('when using a development build', () => {
+    //   beforeEach(() => {
+    //     // version = 1.9.0_b76f4ae
+    //     Settings.initializeFromPermalink('MS45LjBfYjc2ZjRhZQBTZWVkAAcBAwAOAEADAAAAAAABAAA=');
+    //   });
 
-      test('sets the version to be the commit hash', () => {
-        expect(Settings.version).toEqual('b76f4ae');
-      });
-    });
+    //   test('sets the version to be the commit hash', () => {
+    //     expect(Settings.version).toEqual('b76f4ae');
+    //   });
+    // });
 
-    describe('when using a beta build', () => {
-      beforeEach(() => {
-        // version = 1.9.0-BETA_2021-02-03
-        Settings.initializeFromPermalink('MS45LjAtQkVUQV8yMDIxLTAyLTAzAFdvbmRyb3VzTWlzZXJhYmxlUmVhZGluZwAHAQMADgBAAwAAAAAAAQAA');
-      });
+    // describe('when using a beta build', () => {
+    //   beforeEach(() => {
+    //     // version = 1.9.0-BETA_2021-02-03
+    //     Settings.initializeFromPermalink('MS45LjAtQkVUQV8yMDIxLTAyLTAzAFdvbmRyb3VzTWlzZXJhYmxlUmVhZGluZwAHAQMADgBAAwAAAAAAAQAA');
+    //   });
 
-      test('sets the version to master', () => {
-        expect(Settings.version).toEqual('master');
-      });
-    });
+    //   test('sets the version to master', () => {
+    //     expect(Settings.version).toEqual('master');
+    //   });
+    // });
 
     describe('all flags set', () => {
       beforeEach(() => {
-        Settings.initializeFromPermalink('MS45LjAAeWVldAD//z8ADgBAAwAAAAAAAQAA');
+        Settings.initializeFromPermalink('MS45LjBfYjVjMTZlNAB5ZWV0AP//PwBvHiCABBAAAABQAIAAAAA=');
       });
 
       test('initializes all the flags', () => {
@@ -76,7 +76,7 @@ describe('Settings', () => {
 
     describe('all starting gear set', () => {
       beforeEach(() => {
-        Settings.initializeFromPermalink('MS45LjAAeWVldAAHAQMADgBAA/j///+uLgAA');
+        Settings.initializeFromPermalink('MS45LjBfYjVjMTZlNAB5ZWV0AAcBAwAOAEAAAPr/////31UXAAA=');
       });
 
       test('initializes the starting gear', () => {
@@ -87,7 +87,7 @@ describe('Settings', () => {
     describe('only sunken triforce enabled', () => {
       describe('when charts are not randomized', () => {
         beforeEach(() => {
-          Settings.initializeFromPermalink('MS45LjAAeWVldAAAQAAADgBAAwAAAAAAAQAA');
+          Settings.initializeFromPermalink('MS45LjBfYjVjMTZlNAB5ZWV0AABAAAAOAEAAABAAAAAQAIIAAAA=');
         });
 
         test('initializes the flags', () => {
@@ -99,7 +99,7 @@ describe('Settings', () => {
 
       describe('when charts are randomized', () => {
         beforeEach(() => {
-          Settings.initializeFromPermalink('MS45LjAAeWVldAAAQACADgBAAwAAAAAAAQAA');
+          Settings.initializeFromPermalink('MS45LjBfYjVjMTZlNAB5ZWV0AABAAIAOAEAAABAAAAAQAIIAAAA=');
         });
 
         test('initializes the flags', () => {
@@ -271,4 +271,30 @@ describe('Settings', () => {
       expect(version).toEqual('1.0.0');
     });
   });
+
+  describe('updateOptions', () => {
+    beforeEach(() => {
+      Settings.initializeRaw({
+        flags: [Settings.FLAGS.TINGLE_CHEST],
+        options: {
+          [Permalink.OPTIONS.RANDOMIZE_ENTRANCES]: true,
+        },
+      });
+    });
+
+    test('update options', () => {
+      const {flags, options } = Settings.readAll()
+      expect(flags).toEqual([ 'Tingle Chest'])
+      expect(options).toEqual({randomize_entrances: true})
+
+      Settings.updateOptions({
+        "progression_tingle_chests": false,
+        "randomize_entrances": "Disabled"
+      })
+      
+      const {flags:newFlags, options:newOptions } = Settings.readAll()
+      expect(newFlags).toEqual([])
+      expect(newOptions).toEqual({progression_tingle_chests: false, randomize_entrances: "Disabled"})
+    });
+  })
 });
