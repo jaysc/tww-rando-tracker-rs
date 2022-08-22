@@ -161,7 +161,6 @@ class Spheres {
   }
 
   _updateItemsForLocation(generalLocation, detailedLocation, logic) {
-
     const sphere = this._sphereForLocation(generalLocation, detailedLocation);
     if (!_.isNil(sphere)) {
       return;

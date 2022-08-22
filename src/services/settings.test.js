@@ -55,7 +55,8 @@ describe('Settings', () => {
     // describe('when using a beta build', () => {
     //   beforeEach(() => {
     //     // version = 1.9.0-BETA_2021-02-03
-    //     Settings.initializeFromPermalink('MS45LjAtQkVUQV8yMDIxLTAyLTAzAFdvbmRyb3VzTWlzZXJhYmxlUmVhZGluZwAHAQMADgBAAwAAAAAAAQAA');
+    //     Settings.initializeFromPermalink
+    //     ('MS45LjAtQkVUQV8yMDIxLTAyLTAzAFdvbmRyb3VzTWlzZXJhYmxlUmVhZGluZwAHAQMADgBAAwAAAAAAAQAA');
     //   });
 
     //   test('sets the version to master', () => {
@@ -283,18 +284,18 @@ describe('Settings', () => {
     });
 
     test('update options', () => {
-      const {flags, options } = Settings.readAll()
-      expect(flags).toEqual([ 'Tingle Chest'])
-      expect(options).toEqual({randomize_entrances: true})
+      const { flags, options } = Settings.readAll();
+      expect(flags).toEqual(['Tingle Chest']);
+      expect(options).toEqual({ randomize_entrances: true });
 
       Settings.updateOptions({
-        "progression_tingle_chests": false,
-        "randomize_entrances": "Disabled"
-      })
-      
-      const {flags:newFlags, options:newOptions } = Settings.readAll()
-      expect(newFlags).toEqual([])
-      expect(newOptions).toEqual({progression_tingle_chests: false, randomize_entrances: "Disabled"})
+        progression_tingle_chests: false,
+        randomize_entrances: 'Disabled',
+      });
+
+      const { flags: newFlags, options: newOptions } = Settings.readAll();
+      expect(newFlags).toEqual([]);
+      expect(newOptions).toEqual({ progression_tingle_chests: false, randomize_entrances: 'Disabled' });
     });
-  })
+  });
 });

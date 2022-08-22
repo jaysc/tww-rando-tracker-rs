@@ -40,7 +40,7 @@ describe('LogicCalculation', () => {
         [LogicHelper.ITEMS.BALLAD_OF_GALES]: 1,
         [LogicHelper.ITEMS.PROGRESSIVE_SHIELD]: 1,
         [LogicHelper.ITEMS.PROGRESSIVE_SWORD]: 0,
-        [LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER]: 1
+        [LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER]: 1,
       },
       flags: [
         Settings.FLAGS.DUNGEON,
