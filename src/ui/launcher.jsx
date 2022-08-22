@@ -25,6 +25,42 @@ export default class Launcher extends React.PureComponent {
     );
   }
 
+  static introductionContainer() {
+    return (
+      <div className="introduction">
+        <div className="content">
+          <div className="title">
+            TWW Randomizer Tracker Random Settings
+          </div>
+          <div className="text">
+            This tracker is intended to be used for the
+            {' '}
+            <a href="https://github.com/tanjo3/wwrando/releases">Random Settings version of TWW Randomizer.</a>
+            <br />
+            The purpose of this tracker is enable you to alter settings on the fly.
+          </div>
+          <div className="heading">
+            How to use
+          </div>
+          <div className="text">
+            The default settings for this tracker should enable all the settings required.
+            You should not need to make any additional changes.
+            <br />
+            When you launch the tracker, you will see button at the bottom called &quot;
+            <u>Open Settings Window</u>
+            &quot;.
+            <br />
+            A pop-up will appear showing the same visuals as the launcher
+            , allowing you change settings as required.
+            <br />
+            From there you can make adjustments to the settings, and press apply at the bottom.
+            The tracker will reflect the changes you have made.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   constructor() {
     super();
 
@@ -334,11 +370,12 @@ export default class Launcher extends React.PureComponent {
             />
           </div>
           <div className="settings">
+            {Launcher.introductionContainer()}
+            {this.launchButtonContainer()}
             {this.permalinkContainer()}
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
             {this.convenienceTweaksTable()}
-            {this.launchButtonContainer()}
           </div>
           <div className="attribution">
             <span>Maintained by Jaysc/Colfra • Check out the </span>
