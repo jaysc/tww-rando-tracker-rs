@@ -18,28 +18,22 @@ import Tooltip from './tooltip';
 class DetailedLocationsTable extends React.PureComponent {
   static NUM_ROWS = 13;
 
-  requirementsTooltip(generalLocation, detailedLocation) {
+  requirementsTooltip(generalLocation, detailedLocation, locationTypes) {
     const { logic } = this.props;
 
     const requirements = logic.formattedRequirementsForLocation(generalLocation, detailedLocation);
-
-    const locationTypes = Locations.getLocation(
-      generalLocation,
-      detailedLocation,
-      Locations.KEYS.TYPES,
-    );
 
     return (
       <RequirementsTooltip locationTypes={locationTypes} requirements={requirements} />
     );
   }
 
-  itemTooltip(generalLocation, detailedLocation) {
+  itemTooltip(generalLocation, detailedLocation, locationTypes) {
     const { trackerState } = this.props;
 
     const itemForLocation = trackerState.getItemForLocation(generalLocation, detailedLocation);
 
-    if (_.isNil(itemForLocation)) {
+    if (_.isNil(itemForLocation) && _.isNil(locationTypes)) {
       return null;
     }
 
@@ -47,8 +41,17 @@ class DetailedLocationsTable extends React.PureComponent {
 
     return (
       <div className="tooltip">
-        <div className="tooltip-title">Item at Location</div>
-        <div>{prettyItemName}</div>
+        {locationTypes && (
+        <div className="tooltip-title">
+          {`Settings: ${locationTypes}`}
+        </div>
+        )}
+        {prettyItemName && (
+        <>
+          <div className="tooltip-title">Item at Location</div>
+          <div>{prettyItemName}</div>
+        </>
+        )}
       </div>
     );
   }
@@ -104,11 +107,25 @@ class DetailedLocationsTable extends React.PureComponent {
 
     const isLocationChecked = color === LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION;
 
+    const locationTypes = Locations.getLocation(
+      openedLocation,
+      location,
+      Locations.KEYS.TYPES,
+    );
+
     let locationContent;
     if (disableLogic || isLocationChecked) {
       let itemTooltip = null;
       if (trackSpheres) {
-        itemTooltip = this.itemTooltip(openedLocation, location);
+        itemTooltip = this.itemTooltip(openedLocation, location, locationTypes);
+      } else if (locationTypes) {
+        itemTooltip = (
+          <div className="tooltip">
+            <div className="tooltip-title">
+              {`Settings: ${locationTypes}`}
+            </div>
+          </div>
+        );
       }
 
       locationContent = (
@@ -117,7 +134,7 @@ class DetailedLocationsTable extends React.PureComponent {
         </Tooltip>
       );
     } else {
-      const requirementsTooltip = this.requirementsTooltip(openedLocation, location);
+      const requirementsTooltip = this.requirementsTooltip(openedLocation, location, locationTypes);
 
       locationContent = (
         <Tooltip tooltipContent={requirementsTooltip}>
