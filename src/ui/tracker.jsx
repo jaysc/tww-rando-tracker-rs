@@ -5,6 +5,7 @@ import { Oval } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 
 import LogicHelper from '../services/logic-helper';
+import Permalink from '../services/permalink';
 import Settings from '../services/settings';
 import Spheres from '../services/spheres';
 import TrackerController from '../services/tracker-controller';
@@ -33,6 +34,7 @@ class Tracker extends React.PureComponent {
         sphereTrackingBackground: null,
         statisticsBackground: null,
       },
+      pendingChangedStartingItems: {},
       disableLogic: false,
       entrancesListOpen: false,
       isLoading: true,
@@ -42,6 +44,7 @@ class Tracker extends React.PureComponent {
       openedLocation: null,
       openedLocationIsDungeon: null,
       settingsWindowOpen: false,
+      startingItemSelection: false,
       trackSpheres: false,
     };
 
@@ -50,13 +53,17 @@ class Tracker extends React.PureComponent {
     this.clearOpenedMenus = this.clearOpenedMenus.bind(this);
     this.clearRaceModeBannedLocations = this.clearRaceModeBannedLocations.bind(this);
     this.decrementItem = this.decrementItem.bind(this);
+    this.decrementStartingItem = this.decrementStartingItem.bind(this);
     this.incrementItem = this.incrementItem.bind(this);
+    this.incrementStartingItem = this.incrementStartingItem.bind(this);
+    this.refreshLogic = this.refreshLogic.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.toggleDisableLogic = this.toggleDisableLogic.bind(this);
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
     this.toggleLocationChecked = this.toggleLocationChecked.bind(this);
     this.toggleOnlyProgressLocations = this.toggleOnlyProgressLocations.bind(this);
     this.toggleSettingsWindow = this.toggleSettingsWindow.bind(this);
+    this.toggleStartingItemSelection = this.toggleStartingItemSelection.bind(this);
     this.toggleTrackSpheres = this.toggleTrackSpheres.bind(this);
     this.unsetExit = this.unsetExit.bind(this);
     this.unsetLastLocation = this.unsetLastLocation.bind(this);
@@ -149,12 +156,67 @@ class Tracker extends React.PureComponent {
     this.updateTrackerState(newTrackerState);
   }
 
+  incrementStartingItem(itemName) {
+    const { pendingChangedStartingItems } = this.state;
+    // handle shards
+    const currentItemCount = _.get(
+      pendingChangedStartingItems,
+      itemName,
+      LogicHelper.startingItemCount(itemName) ?? 0,
+    );
+
+    let newItemCount = 1 + currentItemCount;
+    const maxItemCount = LogicHelper.maxItemCount(itemName);
+    if (newItemCount > maxItemCount) {
+      newItemCount = 0;
+    }
+    if (newItemCount === LogicHelper.startingItemCount(itemName)) {
+      newItemCount = null;
+    }
+
+    const newPendingChangedStartingItems = _.clone(pendingChangedStartingItems);
+    if (!_.isNil(newItemCount)) {
+      _.set(newPendingChangedStartingItems, itemName, newItemCount);
+    } else {
+      _.unset(newPendingChangedStartingItems, itemName);
+    }
+
+    this.setState({ pendingChangedStartingItems: newPendingChangedStartingItems });
+  }
+
   decrementItem(itemName) {
     const { trackerState } = this.state;
 
     const newTrackerState = trackerState.decrementItem(itemName);
 
     this.updateTrackerState(newTrackerState);
+  }
+
+  decrementStartingItem(itemName) {
+    const { pendingChangedStartingItems } = this.state;
+
+    const currentItemCount = _.get(
+      pendingChangedStartingItems,
+      itemName,
+      LogicHelper.startingItemCount(itemName) ?? 0,
+    );
+
+    let newItemCount = currentItemCount - 1;
+    if (newItemCount < 0) {
+      newItemCount = LogicHelper.maxItemCount(itemName);
+    }
+    if (newItemCount === LogicHelper.startingItemCount(itemName)) {
+      newItemCount = null;
+    }
+
+    const newPendingChangedStartingItems = _.clone(pendingChangedStartingItems);
+    if (!_.isNil(newItemCount)) {
+      _.set(newPendingChangedStartingItems, itemName, newItemCount);
+    } else {
+      _.unset(newPendingChangedStartingItems, itemName);
+    }
+
+    this.setState({ pendingChangedStartingItems: newPendingChangedStartingItems });
   }
 
   toggleLocationChecked(generalLocation, detailedLocation) {
@@ -299,6 +361,46 @@ class Tracker extends React.PureComponent {
     });
   }
 
+  async toggleStartingItemSelection() {
+    const { pendingChangedStartingItems, startingItemSelection, trackerState } = this.state;
+
+    if (startingItemSelection && !_.isEmpty(pendingChangedStartingItems)) {
+      const newTrackerState = trackerState._clone({ items: true });
+      const startingGear = Settings.getStartingGear();
+
+      const newChangedStartingItems = _.pickBy(
+        pendingChangedStartingItems,
+        (startingValue, itemName) => {
+          const itemValue = trackerState.getItemValue(itemName);
+          if (startingValue > itemValue) {
+            newTrackerState.setItemValue(itemName, startingValue);
+          }
+
+          if (itemName === LogicHelper.ITEMS.TRIFORCE_SHARD) {
+            Settings.setOptionsValue(Permalink.OPTIONS.NUM_STARTING_TRIFORCE_SHARDS, startingValue);
+            return false;
+          }
+
+          return true;
+        },
+      );
+
+      const newStartingGear = _.merge(startingGear, newChangedStartingItems);
+      Settings.updateStartingGear(newStartingGear);
+
+      this.setState({
+        pendingChangedStartingItems: {},
+        trackerState: newTrackerState,
+      });
+
+      await this.refreshLogic();
+    }
+
+    this.setState({
+      startingItemSelection: !startingItemSelection,
+    });
+  }
+
   toggleTrackSpheres() {
     const { trackSpheres } = this.state;
 
@@ -314,14 +416,15 @@ class Tracker extends React.PureComponent {
   }
 
   async updateLogic(newOptions) {
-    const { logic, trackerState } = this.state;
-
     Settings.updateOptions(newOptions);
+    await this.refreshLogic();
+  }
+
+  async refreshLogic() {
+    const { logic, trackerState } = this.state;
     await TrackerController.refreshLogic();
-
-    logic.clearCache();
-
     const newLogic = _.cloneDeep(logic);
+    newLogic.clearCache();
 
     this.setState({ logic: newLogic, spheres: new Spheres(trackerState) });
   }
@@ -351,6 +454,7 @@ class Tracker extends React.PureComponent {
     const {
       colorPickerOpen,
       colors,
+      pendingChangedStartingItems,
       disableLogic,
       entrancesListOpen,
       isLoading,
@@ -362,6 +466,7 @@ class Tracker extends React.PureComponent {
       openedLocationIsDungeon,
       saveData,
       settingsWindowOpen,
+      startingItemSelection,
       spheres,
       trackSpheres,
       trackerState,
@@ -388,8 +493,12 @@ class Tracker extends React.PureComponent {
           <div className="tracker">
             <ItemsTable
               backgroundColor={itemsTableBackground}
+              pendingChangedStartingItems={pendingChangedStartingItems}
               decrementItem={this.decrementItem}
+              decrementStartingItem={this.decrementStartingItem}
               incrementItem={this.incrementItem}
+              incrementStartingItem={this.incrementStartingItem}
+              startingItemSelection={startingItemSelection}
               spheres={spheres}
               trackerState={trackerState}
               trackSpheres={trackSpheres}
@@ -454,12 +563,14 @@ class Tracker extends React.PureComponent {
             onlyProgressLocations={onlyProgressLocations}
             saveData={saveData}
             settingsWindowOpen={settingsWindowOpen}
+            startingItemSelection={startingItemSelection}
             trackSpheres={trackSpheres}
             toggleColorPicker={this.toggleColorPicker}
             toggleDisableLogic={this.toggleDisableLogic}
             toggleEntrancesList={this.toggleEntrancesList}
             toggleOnlyProgressLocations={this.toggleOnlyProgressLocations}
             toggleSettingsWindow={this.toggleSettingsWindow}
+            toggleStartingItemSelection={this.toggleStartingItemSelection}
             toggleTrackSpheres={this.toggleTrackSpheres}
           />
         </div>

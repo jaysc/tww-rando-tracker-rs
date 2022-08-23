@@ -9,6 +9,7 @@ import TrackerState from '../services/tracker-state';
 import Images from './images';
 import Item from './item';
 import SongNotes from './song-notes';
+import StartingItem from './starting-item';
 import Table from './table';
 
 class ItemsTable extends React.PureComponent {
@@ -52,9 +53,14 @@ class ItemsTable extends React.PureComponent {
       decrementItem,
       incrementItem,
       spheres,
+      startingItemSelection,
       trackerState,
       trackSpheres,
     } = this.props;
+
+    if (startingItemSelection) {
+      return this.startingItem(itemName);
+    }
 
     const itemCount = trackerState.getItemValue(itemName);
     const itemImages = _.get(Images.IMAGES, ['ITEMS', itemName]);
@@ -79,6 +85,33 @@ class ItemsTable extends React.PureComponent {
     );
   }
 
+  startingItem(itemName) {
+    const {
+      pendingChangedStartingItems,
+      decrementStartingItem,
+      incrementStartingItem,
+    } = this.props;
+
+    const itemCount = _.get(
+      pendingChangedStartingItems,
+      itemName,
+      LogicHelper.startingItemCount(itemName) ?? 0,
+    );
+    const itemImages = _.get(Images.IMAGES, ['ITEMS', itemName]);
+
+    return (
+      <StartingItem
+        clearSelectedItem={this.clearSelectedItem}
+        decrementStartingItem={decrementStartingItem}
+        images={itemImages}
+        incrementStartingItem={incrementStartingItem}
+        itemCount={itemCount}
+        itemName={itemName}
+        setSelectedItem={this.setSelectedItem}
+      />
+    );
+  }
+
   song(songName) {
     const { trackerState, trackSpheres, spheres } = this.props;
 
@@ -98,7 +131,7 @@ class ItemsTable extends React.PureComponent {
   }
 
   render() {
-    const { backgroundColor } = this.props;
+    const { backgroundColor, startingItemSelection } = this.props;
 
     return (
       <div className={`item-tracker ${backgroundColor ? 'single-color' : ''}`}>
@@ -194,6 +227,11 @@ class ItemsTable extends React.PureComponent {
             </div>
           </div>
         </div>
+        {startingItemSelection && (
+        <span className="item-info">
+          STARTING ITEM SELECTION MODE
+        </span>
+        )}
         {this.itemInfo()}
       </div>
     );
@@ -206,9 +244,14 @@ ItemsTable.defaultProps = {
 
 ItemsTable.propTypes = {
   backgroundColor: PropTypes.string,
+  // eslint-disable-next-line react/forbid-prop-types
+  pendingChangedStartingItems: PropTypes.object.isRequired,
   decrementItem: PropTypes.func.isRequired,
+  decrementStartingItem: PropTypes.func.isRequired,
   incrementItem: PropTypes.func.isRequired,
+  incrementStartingItem: PropTypes.func.isRequired,
   spheres: PropTypes.instanceOf(Spheres).isRequired,
+  startingItemSelection: PropTypes.bool.isRequired,
   trackerState: PropTypes.instanceOf(TrackerState).isRequired,
   trackSpheres: PropTypes.bool.isRequired,
 };

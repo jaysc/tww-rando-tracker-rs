@@ -25,12 +25,14 @@ class Buttons extends React.PureComponent {
       entrancesListOpen,
       onlyProgressLocations,
       settingsWindowOpen,
+      startingItemSelection,
       trackSpheres,
       toggleColorPicker,
       toggleDisableLogic,
       toggleEntrancesList,
       toggleOnlyProgressLocations,
       toggleSettingsWindow,
+      toggleStartingItemSelection,
       toggleTrackSpheres,
     } = this.props;
 
@@ -43,6 +45,9 @@ class Buttons extends React.PureComponent {
     const settingsWindowText = settingsWindowOpen
       ? 'Close Settings Window'
       : 'Open Settings Window';
+    const startingItemSelectionText = startingItemSelection
+      ? 'Disable Starting Item Selection'
+      : 'Enable Starting Item Selection';
     const isRandomEntrances = LogicHelper.isRandomEntrances();
 
     return (
@@ -96,6 +101,13 @@ class Buttons extends React.PureComponent {
         >
           {settingsWindowText}
         </button>
+        <button
+          onClick={toggleStartingItemSelection}
+          type="button"
+        >
+          <input type="checkbox" className="button-checkbox" checked={startingItemSelection} readOnly />
+          {startingItemSelectionText}
+        </button>
       </div>
     );
   }
@@ -108,12 +120,14 @@ Buttons.propTypes = {
   onlyProgressLocations: PropTypes.bool.isRequired,
   saveData: PropTypes.string.isRequired,
   settingsWindowOpen: PropTypes.bool.isRequired,
+  startingItemSelection: PropTypes.bool.isRequired,
   trackSpheres: PropTypes.bool.isRequired,
   toggleColorPicker: PropTypes.func.isRequired,
   toggleDisableLogic: PropTypes.func.isRequired,
   toggleEntrancesList: PropTypes.func.isRequired,
   toggleOnlyProgressLocations: PropTypes.func.isRequired,
   toggleSettingsWindow: PropTypes.func.isRequired,
+  toggleStartingItemSelection: PropTypes.func.isRequired,
   toggleTrackSpheres: PropTypes.func.isRequired,
 };
 
