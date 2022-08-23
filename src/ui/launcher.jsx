@@ -37,14 +37,14 @@ export default class Launcher extends React.PureComponent {
             {' '}
             <a href="https://github.com/tanjo3/wwrando/releases">Random Settings version of TWW Randomizer.</a>
             <br />
-            The purpose of this tracker is enable you to alter settings on the fly.
+            The purpose of this tracker is enable you to alter settings while in progress.
           </div>
           <div className="heading">
             How to use
           </div>
           <div className="text">
-            The default settings for this tracker should enable all the settings required.
-            You should not need to make any additional changes.
+            The default permalink for this tracker will enable all the settings
+            and no starting sword.
             <br />
             When you launch the tracker, you will see button at the bottom called &quot;
             <u>Open Settings Window</u>
