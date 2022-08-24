@@ -8,7 +8,7 @@
     "build:production": "webpack --mode=production",
     "docs": "jsdoc -c .jsdoc.json",
     "lint": "eslint --max-warnings 0 \"src/**/*.jsx\" \"src/**/*.js\" \"*.js\"",
-    "start": "webpack serve",
+    "start": "node server.js",
     "test": "jest --maxWorkers=5"
   },
   "repository": {
@@ -16,6 +16,7 @@
     "url": "git+https://github.com/jaysc/tww-rando-tracker-rs.git"
   },
   "dependencies": {
+    "express": "^4.18.1",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
