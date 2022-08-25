@@ -16,7 +16,6 @@
     "url": "git+https://github.com/jaysc/tww-rando-tracker-rs.git"
   },
   "dependencies": {
-    "express": "^4.18.1",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
