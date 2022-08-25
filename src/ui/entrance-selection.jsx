@@ -97,7 +97,7 @@ class EntranceSelection extends React.PureComponent {
     } else if (disableLogic) {
       entranceContent = entranceElement;
     } else {
-      const requirementsTooltip = this.requirementsTooltip(entrance);
+      const requirementsTooltip = this.requirementsTooltip(openedExit);
 
       entranceContent = (
         <Tooltip tooltipContent={requirementsTooltip}>

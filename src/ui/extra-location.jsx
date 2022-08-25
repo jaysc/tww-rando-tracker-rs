@@ -178,8 +178,9 @@ class ExtraLocation extends React.PureComponent {
       updateOpenedExit,
     } = this.props;
 
-    const entryName = LogicHelper.entryName(locationName);
-    const entryCount = trackerState.getItemValue(entryName);
+    const leadsTo = _.get(trackerState, ['entrances', locationName]);
+    const entryName = LogicHelper.entryName(leadsTo ?? locationName);
+    const entryCount = leadsTo ? trackerState.getItemValue(entryName) : 0;
 
     const entranceImages = _.get(Images.IMAGES, 'DUNGEON_ENTRANCE');
 
