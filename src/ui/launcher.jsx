@@ -70,12 +70,14 @@ export default class Launcher extends React.PureComponent {
     this.state = {
       options,
       permalink,
+      disableAll: true,
     };
 
     this.launchNewTracker = this.launchNewTracker.bind(this);
     this.loadFromFile = this.loadFromFile.bind(this);
     this.loadFromSave = this.loadFromSave.bind(this);
     this.setOptionValue = this.setOptionValue.bind(this);
+    this.invertSettingsFunc = this.invertSettingsFunc.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -136,6 +138,34 @@ export default class Launcher extends React.PureComponent {
         optionValue={optionValue}
         setOptionValue={this.setOptionValue}
       />
+    );
+  }
+
+  invertSettingsFunc() {
+    const { options, disableAll } = this.state;
+
+    Object.keys(Permalink.OPTIONS).filter((key) => _.startsWith(key, 'PROGRESSION')).forEach((optionName) => {
+      _.set(options, optionName.toLowerCase(), !disableAll);
+    });
+
+    this.updateOptions(options);
+
+    this.setState(
+      { disableAll: !disableAll },
+    );
+  }
+
+  invertSettings() {
+    const { disableAll } = this.state;
+
+    return (
+      <button
+        className="launcher-button"
+        type="button"
+        onClick={this.invertSettingsFunc}
+      >
+        {`${disableAll ? 'Disable all' : 'Enable all'} tracker settings`}
+      </button>
     );
   }
 
@@ -375,6 +405,7 @@ export default class Launcher extends React.PureComponent {
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
             {this.convenienceTweaksTable()}
+            {this.invertSettings()}
             {this.launchButtonContainer()}
           </div>
           <div className="attribution">
