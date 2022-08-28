@@ -37,7 +37,10 @@ class DetailedLocationsTable extends React.PureComponent {
       return null;
     }
 
-    const prettyItemName = LogicHelper.prettyNameForItem(itemForLocation, null);
+    let prettyItemName;
+    if (!_.isNil(itemForLocation)) {
+      prettyItemName = LogicHelper.prettyNameForItem(itemForLocation, null);
+    }
 
     return (
       <div className="tooltip">
