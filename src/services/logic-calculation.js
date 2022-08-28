@@ -77,7 +77,10 @@ class LogicCalculation {
     return this._formatRequirements(requirementsForEntrance);
   }
 
-  locationCounts(generalLocation, { isDungeon, onlyProgressLocations, disableLogic }) {
+  locationCounts(
+    generalLocation,
+    { isDungeon, onlyProgressLocations, disableLogic },
+  ) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
       { isDungeon, onlyProgressLocations },
@@ -89,10 +92,15 @@ class LogicCalculation {
 
     _.forEach(detailedLocations, (detailedLocation) => {
       if (!this.state.isLocationChecked(generalLocation, detailedLocation)) {
-        if (disableLogic || this.isLocationAvailable(generalLocation, detailedLocation)) {
+        if (
+          disableLogic
+          || this.isLocationAvailable(generalLocation, detailedLocation)
+        ) {
           numAvailable += 1;
 
-          if (LogicHelper.isProgressLocation(generalLocation, detailedLocation)) {
+          if (
+            LogicHelper.isProgressLocation(generalLocation, detailedLocation)
+          ) {
             anyProgress = true;
           }
         }
@@ -100,7 +108,11 @@ class LogicCalculation {
       }
     });
 
-    const color = LogicCalculation._locationCountsColor(numAvailable, numRemaining, anyProgress);
+    const color = LogicCalculation._locationCountsColor(
+      numAvailable,
+      numRemaining,
+      anyProgress,
+    );
 
     return {
       color,
@@ -109,16 +121,64 @@ class LogicCalculation {
     };
   }
 
-  locationsList(generalLocation, { isDungeon, onlyProgressLocations, disableLogic }) {
+  getCaveLocationsListForEntrance(
+    generalLocation,
+    { isDungeon, onlyProgressLocations, disableLogic },
+  ) {
+    const { entrances } = this.state;
+    const caves = _.compact(LogicHelper.cavesForIsland(generalLocation));
+
+    const exits = _.compact(
+      caves.map((cave) => _.findKey(entrances, (entrance) => entrance === cave)),
+    );
+
+    let newGeneralLocations;
+    if (!_.isEmpty(exits)) {
+      newGeneralLocations = exits.map((exit) => LogicHelper.getIslandForCave(exit));
+    }
+
+    let newDetailedLocations = [];
+    if (!_.isEmpty(newGeneralLocations)) {
+      newDetailedLocations = newGeneralLocations
+        .map((newGeneralLocation) => this.locationsList(newGeneralLocation, {
+          isDungeon,
+          onlyProgressLocations,
+          disableLogic,
+        })
+          .filter(({ location }) => location.includes('Cave'))
+          .map(
+            (newDetailedLocation) => ({
+              ...newDetailedLocation,
+              generalLocation: newGeneralLocation,
+            }),
+          ));
+    }
+
+    return newDetailedLocations.flat(2);
+  }
+
+  locationsList(
+    generalLocation,
+    { isDungeon, onlyProgressLocations, disableLogic },
+  ) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
       { isDungeon, onlyProgressLocations },
     );
 
     return _.map(detailedLocations, (detailedLocation) => {
-      const isAvailable = this.isLocationAvailable(generalLocation, detailedLocation);
-      const isChecked = this.state.isLocationChecked(generalLocation, detailedLocation);
-      const isProgress = LogicHelper.isProgressLocation(generalLocation, detailedLocation);
+      const isAvailable = this.isLocationAvailable(
+        generalLocation,
+        detailedLocation,
+      );
+      const isChecked = this.state.isLocationChecked(
+        generalLocation,
+        detailedLocation,
+      );
+      const isProgress = LogicHelper.isProgressLocation(
+        generalLocation,
+        detailedLocation,
+      );
 
       const color = LogicCalculation._locationColor(
         disableLogic || isAvailable,
@@ -134,10 +194,9 @@ class LogicCalculation {
   }
 
   entrancesList({ disableLogic }) {
-    return this._entrancesListForEntrances(
-      LogicHelper.allRandomEntrances(),
-      { disableLogic },
-    );
+    return this._entrancesListForEntrances(LogicHelper.allRandomEntrances(), {
+      disableLogic,
+    });
   }
 
   entrancesListForExit(dungeonOrCaveName, { disableLogic }) {
@@ -150,7 +209,10 @@ class LogicCalculation {
   totalLocationsChecked({ onlyProgressLocations }) {
     return LogicCalculation._countLocationsBy(
       (generalLocation, detailedLocation) => {
-        const isLocationChecked = this.state.isLocationChecked(generalLocation, detailedLocation);
+        const isLocationChecked = this.state.isLocationChecked(
+          generalLocation,
+          detailedLocation,
+        );
 
         return isLocationChecked ? 1 : 0;
       },
@@ -179,7 +241,10 @@ class LogicCalculation {
   totalLocationsRemaining({ onlyProgressLocations }) {
     return LogicCalculation._countLocationsBy(
       (generalLocation, detailedLocation) => {
-        const isLocationChecked = this.state.isLocationChecked(generalLocation, detailedLocation);
+        const isLocationChecked = this.state.isLocationChecked(
+          generalLocation,
+          detailedLocation,
+        );
 
         return isLocationChecked ? 0 : 1;
       },
@@ -195,7 +260,9 @@ class LogicCalculation {
   }
 
   estimatedLocationsLeftToCheck() {
-    const locationsRemaining = this.totalLocationsRemaining({ onlyProgressLocations: true });
+    const locationsRemaining = this.totalLocationsRemaining({
+      onlyProgressLocations: true,
+    });
 
     // there can't be more items remaining than locations remaining unless the tracker is used
     // incorrectly, so we apply a maximum to make sure our formula always works
@@ -262,17 +329,13 @@ class LogicCalculation {
   _itemsRemainingForRequirements(requirements) {
     return requirements.reduce({
       andInitialValue: 0,
-      andReducer: ({
-        accumulator,
-        item,
-        isReduced,
-      }) => accumulator + (isReduced ? item : this._itemsRemainingForRequirement(item)),
+      andReducer: ({ accumulator, item, isReduced }) => accumulator
+        + (isReduced ? item : this._itemsRemainingForRequirement(item)),
       orInitialValue: Number.MAX_SAFE_INTEGER,
-      orReducer: ({
+      orReducer: ({ accumulator, item, isReduced }) => Math.min(
         accumulator,
-        item,
-        isReduced,
-      }) => Math.min(accumulator, (isReduced ? item : this._itemsRemainingForRequirement(item))),
+        isReduced ? item : this._itemsRemainingForRequirement(item),
+      ),
     });
   }
 
@@ -298,10 +361,7 @@ class LogicCalculation {
 
     if (!Settings.getOptionValue(Permalink.OPTIONS.KEYLUNACY)) {
       _.forEach(LogicHelper.mainDungeons(), (dungeonName) => {
-        const {
-          guaranteedSmallKeys,
-          guaranteedBigKeys,
-        } = this._guaranteedKeysForDungeon(dungeonName);
+        const { guaranteedSmallKeys, guaranteedBigKeys } = this._guaranteedKeysForDungeon(dungeonName);
 
         const smallKeyName = LogicHelper.smallKeyName(dungeonName);
         const bigKeyName = LogicHelper.bigKeyName(dungeonName);
@@ -357,7 +417,11 @@ class LogicCalculation {
     };
   }
 
-  _nonKeyRequirementsMetForLocation(generalLocation, detailedLocation, smallKeysRequired) {
+  _nonKeyRequirementsMetForLocation(
+    generalLocation,
+    detailedLocation,
+    smallKeysRequired,
+  ) {
     if (this.isLocationAvailable(generalLocation, detailedLocation)) {
       return true;
     }
@@ -387,7 +451,10 @@ class LogicCalculation {
       this._hasAccessedOtherLocationRequirementRemaining(requirement),
     ];
 
-    const remainingItems = _.find(remainingItemsForRequirements, (result) => !_.isNil(result));
+    const remainingItems = _.find(
+      remainingItemsForRequirements,
+      (result) => !_.isNil(result),
+    );
 
     if (!_.isNil(remainingItems)) {
       return remainingItems;
@@ -414,7 +481,11 @@ class LogicCalculation {
 
   _hasMagicRequirment(requirement) {
     if (requirement === LogicHelper.MISC_ITEMS.MAGIC_METER_UPGRADE) {
-      return _.isNil(this._currentItemValue(LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER)) ? 1 : 0;
+      return _.isNil(
+        this._currentItemValue(LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER),
+      )
+        ? 1
+        : 0;
     }
 
     return null;
@@ -423,10 +494,7 @@ class LogicCalculation {
   _itemCountRequirementRemaining(requirement) {
     const itemCountRequirement = LogicHelper.parseItemCountRequirement(requirement);
     if (!_.isNil(itemCountRequirement)) {
-      const {
-        countRequired,
-        itemName,
-      } = itemCountRequirement;
+      const { countRequired, itemName } = itemCountRequirement;
 
       const itemCount = this._currentItemValue(itemName);
       return Math.max(countRequired - itemCount, 0);
@@ -448,7 +516,9 @@ class LogicCalculation {
   }
 
   static _parseHasAccessedOtherLocation(requirement) {
-    const otherLocationMatch = requirement.match(/Has Accessed Other Location "([^"]+)"/);
+    const otherLocationMatch = requirement.match(
+      /Has Accessed Other Location "([^"]+)"/,
+    );
 
     return _.get(otherLocationMatch, 1);
   }
@@ -456,10 +526,7 @@ class LogicCalculation {
   _hasAccessedOtherLocationRequirementRemaining(requirement) {
     const otherLocation = LogicCalculation._parseHasAccessedOtherLocation(requirement);
     if (otherLocation) {
-      const {
-        generalLocation,
-        detailedLocation,
-      } = Locations.splitLocationName(otherLocation);
+      const { generalLocation, detailedLocation } = Locations.splitLocationName(otherLocation);
 
       return this._itemsRemainingForLocation(generalLocation, detailedLocation);
     }
@@ -481,24 +548,25 @@ class LogicCalculation {
 
   _formatRequirements(requirements) {
     const evaluatedRequirements = this._evaluatedRequirements(requirements);
-    const sortedRequirements = LogicCalculation._sortRequirements(evaluatedRequirements);
+    const sortedRequirements = LogicCalculation._sortRequirements(
+      evaluatedRequirements,
+    );
     const readableRequirements = LogicCalculation._createReadableRequirements(sortedRequirements);
     return readableRequirements;
   }
 
   _evaluatedRequirements(requirements) {
-    const generateReducerFunction = (getAccumulatorValue) => ({
-      accumulator,
-      item,
-      isReduced,
-    }) => {
+    const generateReducerFunction = (getAccumulatorValue) => ({ accumulator, item, isReduced }) => {
       if (isReduced) {
         const sortedExpression = LogicCalculation._sortRequirements(item);
 
         return {
           items: _.concat(accumulator.items, sortedExpression),
           type: accumulator.type,
-          value: getAccumulatorValue(accumulator.value, sortedExpression.value),
+          value: getAccumulatorValue(
+            accumulator.value,
+            sortedExpression.value,
+          ),
         };
       }
 
@@ -551,14 +619,15 @@ class LogicCalculation {
 
   static _createReadableRequirements(requirements) {
     if (requirements.type === this._BOOLEAN_EXPRESSION_TYPES.AND) {
-      return _.map(
-        requirements.items,
-        (item) => _.flattenDeep(this._createReadableRequirementsHelper(item, requirements.value)),
-      );
+      return _.map(requirements.items, (item) => _.flattenDeep(
+        this._createReadableRequirementsHelper(item, requirements.value),
+      ));
     }
     if (requirements.type === this._BOOLEAN_EXPRESSION_TYPES.OR) {
       return [
-        _.flattenDeep(this._createReadableRequirementsHelper(requirements, false)),
+        _.flattenDeep(
+          this._createReadableRequirementsHelper(requirements, false),
+        ),
       ];
     }
     // istanbul ignore next
@@ -567,8 +636,12 @@ class LogicCalculation {
 
   static _createReadableRequirementsHelper(requirements, isInconsequential) {
     if (requirements.item) {
-      const prettyItemName = LogicHelper.prettyNameForItemRequirement(requirements.item);
-      const otherLocation = this._parseHasAccessedOtherLocation(requirements.item);
+      const prettyItemName = LogicHelper.prettyNameForItemRequirement(
+        requirements.item,
+      );
+      const otherLocation = this._parseHasAccessedOtherLocation(
+        requirements.item,
+      );
 
       let itemColor;
       if (requirements.value) {
@@ -579,30 +652,41 @@ class LogicCalculation {
         itemColor = this.ITEM_REQUIREMENT_COLORS.UNAVAILABLE_ITEM;
       }
 
-      return [{
-        color: itemColor,
-        text: otherLocation || prettyItemName,
-      }];
+      return [
+        {
+          color: itemColor,
+          text: otherLocation || prettyItemName,
+        },
+      ];
     }
 
     return _.map(requirements.items, (item, index) => {
       const currentResult = [];
       const isInconsequentialForChild = isInconsequential || requirements.value;
 
-      if (item.items) { // if the item is an expression
+      if (item.items) {
+        // if the item is an expression
         currentResult.push([
           {
             color: this.ITEM_REQUIREMENT_COLORS.PLAIN_TEXT,
             text: this._PLAIN_TEXT_STRINGS.LEFT_PAREN,
           },
-          this._createReadableRequirementsHelper(item, isInconsequentialForChild),
+          this._createReadableRequirementsHelper(
+            item,
+            isInconsequentialForChild,
+          ),
           {
             color: this.ITEM_REQUIREMENT_COLORS.PLAIN_TEXT,
             text: this._PLAIN_TEXT_STRINGS.RIGHT_PAREN,
           },
         ]);
       } else {
-        currentResult.push(this._createReadableRequirementsHelper(item, isInconsequentialForChild));
+        currentResult.push(
+          this._createReadableRequirementsHelper(
+            item,
+            isInconsequentialForChild,
+          ),
+        );
       }
 
       if (index < requirements.items.length - 1) {

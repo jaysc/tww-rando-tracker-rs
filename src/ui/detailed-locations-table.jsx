@@ -64,6 +64,7 @@ class DetailedLocationsTable extends React.PureComponent {
     const {
       location,
       color,
+      generalLocation,
     } = locationInfo;
 
     const {
@@ -81,11 +82,13 @@ class DetailedLocationsTable extends React.PureComponent {
       fontSizeClassName = 'font-small';
     }
 
-    const toggleLocationFunc = () => toggleLocationChecked(openedLocation, location);
+    const proxyLocation = generalLocation ?? openedLocation;
+
+    const toggleLocationFunc = () => toggleLocationChecked(proxyLocation, location);
 
     let locationText;
     if (trackSpheres) {
-      const sphere = spheres.sphereForLocation(openedLocation, location);
+      const sphere = spheres.sphereForLocation(proxyLocation, location);
       const sphereText = _.isNil(sphere) ? '?' : sphere;
 
       locationText = `[${sphereText}] ${location}`;
@@ -108,7 +111,7 @@ class DetailedLocationsTable extends React.PureComponent {
     const isLocationChecked = color === LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION;
 
     const locationTypes = Locations.getLocation(
-      openedLocation,
+      proxyLocation,
       location,
       Locations.KEYS.TYPES,
     );
@@ -117,7 +120,7 @@ class DetailedLocationsTable extends React.PureComponent {
     if (disableLogic || isLocationChecked) {
       let itemTooltip = null;
       if (trackSpheres) {
-        itemTooltip = this.itemTooltip(openedLocation, location, locationTypes);
+        itemTooltip = this.itemTooltip(proxyLocation, location, locationTypes);
       } else if (locationTypes) {
         itemTooltip = (
           <div className="tooltip">
@@ -134,7 +137,7 @@ class DetailedLocationsTable extends React.PureComponent {
         </Tooltip>
       );
     } else {
-      const requirementsTooltip = this.requirementsTooltip(openedLocation, location, locationTypes);
+      const requirementsTooltip = this.requirementsTooltip(proxyLocation, location, locationTypes);
 
       locationContent = (
         <Tooltip tooltipContent={requirementsTooltip}>
@@ -175,7 +178,21 @@ class DetailedLocationsTable extends React.PureComponent {
       },
     );
 
-    const locationChunks = _.chunk(detailedLocations, DetailedLocationsTable.NUM_ROWS);
+    const additionalEntranceLocations = logic.getCaveLocationsListForEntrance(
+      openedLocation,
+      {
+        disableLogic,
+        isDungeon: openedLocationIsDungeon,
+        onlyProgressLocations,
+      },
+    );
+
+    console.log([...detailedLocations, ...additionalEntranceLocations]);
+
+    const locationChunks = _.chunk(
+      [...detailedLocations, ...additionalEntranceLocations],
+      DetailedLocationsTable.NUM_ROWS,
+    );
     const arrangedLocations = _.zip(...locationChunks);
     const numColumns = _.size(locationChunks);
 
