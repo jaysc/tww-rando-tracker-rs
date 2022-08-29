@@ -314,15 +314,13 @@ class Tracker extends React.PureComponent {
   }
 
   async updateLogic({ newCertainSettings, newOptions }) {
-    const { logic, trackerState } = this.state;
+    const { trackerState } = this.state;
 
-    Settings.updateCertainSettings(newCertainSettings);
     Settings.updateOptions(newOptions);
+    Settings.updateCertainSettings(newCertainSettings);
     await TrackerController.refreshLogic();
 
-    logic.clearCache();
-
-    const newLogic = _.cloneDeep(logic);
+    const { logic: newLogic } = TrackerController.refreshState(trackerState);
 
     this.setState({ logic: newLogic, spheres: new Spheres(trackerState) });
   }
