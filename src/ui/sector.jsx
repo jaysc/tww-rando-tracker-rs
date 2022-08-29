@@ -23,6 +23,7 @@ class Sector extends React.PureComponent {
     const {
       color,
       numAvailable,
+      numCertain,
       numRemaining,
     } = logic.locationCounts(island, {
       isDungeon: false,
@@ -31,7 +32,7 @@ class Sector extends React.PureComponent {
     });
 
     const className = `chests-counter ${color}`;
-    const chestCounts = disableLogic ? numRemaining : `${numAvailable}/${numRemaining}`;
+    const chestCounts = disableLogic ? numRemaining : `${numCertain}/${numAvailable}/${numRemaining}`;
 
     return (
       <div className={className}>

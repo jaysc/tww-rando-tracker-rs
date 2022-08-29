@@ -487,6 +487,7 @@ button:hover:enabled {
     bottom: 0;
     text-align: center;
     width: 100%;
+    font-size: 11px;
   }
 
   .map-info-container {
@@ -604,6 +605,16 @@ button:hover:enabled {
 .available-location,
 .available-item {
   color: #2929cc;
+}
+
+.certain-available-location {
+  color: #2929cc;
+  text-decoration: underline;
+}
+
+.certain-unavailable-location {
+  color: #cc2929;
+  text-decoration: underline;
 }
 
 .inconsequential-item {
@@ -837,11 +848,24 @@ button:hover:enabled {
     overflow-y: auto;
     max-height: calc(100vh - 60px);
   }
+
   .settings {
     background-image: none;
 
     table {
       font-size: 1em;
+
+      td.label-text  {
+        padding-left: 10px;
+      }
+
+      td.option-container {
+        padding-right: 10px;
+      }
+
+      select {
+        min-width: unset;
+      }
     }
   }
 
@@ -862,5 +886,7 @@ button:hover:enabled {
     flex-grow: 1;
   }
 
-
+  .text-col {
+    width: 24%;
+  }
 }

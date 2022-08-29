@@ -28,9 +28,20 @@ class Settings {
         this.flags.push(this.FLAGS.SUNKEN_TRIFORCE);
       }
     }
+
+    this.certainSettings = {};
+    this.certainSettingsFlags = {};
   }
 
+  static SETTING_STATE = {
+    OFF: 'Off',
+    UNSURE: '-',
+    ON: 'On',
+  };
+
   static initializeRaw(settings) {
+    this.certainSettings = settings.certainSettings;
+    this.certainSettingsFlags = settings.certainSettingsFlags;
     this.flags = settings.flags;
     this.options = settings.options;
     this.startingGear = settings.startingGear;
@@ -38,6 +49,8 @@ class Settings {
   }
 
   static reset() {
+    this.certainSettings = null;
+    this.certainSettingsFlags = null;
     this.flags = null;
     this.options = null;
     this.startingGear = null;
@@ -52,6 +65,8 @@ class Settings {
       options: this.options,
       startingGear: this.startingGear,
       version: this.version,
+      certainSettings: this.certainSettings,
+      certainSettingsFlags: this.certainSettingsFlags,
     };
   }
 
@@ -75,12 +90,37 @@ class Settings {
     return optionValue;
   }
 
+  static setCertainSetting(optionName, value) {
+    _.set(this.certainSettings, optionName, !!value);
+  }
+
   static getStartingGear() {
     return this.startingGear;
   }
 
   static getVersion() {
     return this.version;
+  }
+
+  static isCertainFlagActive(flag) {
+    return _.includes(this.certainSettingsFlags, flag);
+  }
+
+  static updateCertainSettings(newCertainSettings) {
+    this.certainSettings = newCertainSettings;
+
+    let newCertainSettingsFlags = [];
+    _.forEach(this._FLAGS_MAPPING, (flagsForOption, optionName) => {
+      if (_.get(this.certainSettings, optionName)) {
+        newCertainSettingsFlags = _.concat(newCertainSettingsFlags, flagsForOption);
+      }
+    });
+
+    this.certainSettingsFlags = newCertainSettingsFlags;
+  }
+
+  static getFlag(optionName) {
+    return _.get(this._FLAGS_MAPPING, optionName);
   }
 
   static updateOptions(newOptions) {
