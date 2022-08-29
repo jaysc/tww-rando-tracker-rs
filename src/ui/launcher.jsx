@@ -159,13 +159,15 @@ export default class Launcher extends React.PureComponent {
     const { disableAll } = this.state;
 
     return (
-      <button
-        className="launcher-button"
-        type="button"
-        onClick={this.invertSettingsFunc}
-      >
-        {`${disableAll ? 'Disable all' : 'Enable all'} tracker settings`}
-      </button>
+      <div className="launcher-button-container">
+        <button
+          className="launcher-button"
+          type="button"
+          onClick={this.invertSettingsFunc}
+        >
+          {`${disableAll ? 'Disable all' : 'Enable all'} tracker settings`}
+        </button>
+      </div>
     );
   }
 
