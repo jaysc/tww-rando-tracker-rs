@@ -8,6 +8,7 @@ import Settings from '../services/settings';
 import DropdownOptionInput from './dropdown-option-input';
 import KeyDownWrapper from './key-down-wrapper';
 import OptionsTable from './options-table';
+import ThreeStateToggleInput from './three-state-toggle-input';
 import ToggleOptionInput from './toggle-option-input';
 
 class SettingsWindow extends React.PureComponent {
@@ -74,17 +75,10 @@ class SettingsWindow extends React.PureComponent {
       optionValueDisplay = optionValue ? Settings.SETTING_STATE.UNSURE : Settings.SETTING_STATE.OFF;
     }
 
-    const optionList = [
-      Settings.SETTING_STATE.OFF,
-      Settings.SETTING_STATE.UNSURE,
-      Settings.SETTING_STATE.ON,
-    ];
-
     return (
-      <DropdownOptionInput
+      <ThreeStateToggleInput
         key={optionName}
         labelText={labelText}
-        optionList={optionList}
         optionName={optionName}
         optionValue={optionValueDisplay}
         setOptionValue={this.setCertainSettings}
