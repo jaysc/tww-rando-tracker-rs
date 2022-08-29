@@ -30,8 +30,19 @@ export default class Launcher extends React.PureComponent {
       <div className="introduction">
         <div className="content">
           <div className="title">
-            TWW Randomizer Tracker Random Settings
+            TWW Randomizer Tracker Random Settings Setting State Edition
           </div>
+          <div className="heading" style={{ color: 'red' }}><u>WARNING</u></div>
+          <div className="text">
+            This version of the tracker is for development testing and may contain bugs.
+            <br />
+            Use the
+            {' '}
+            <a href="https://jaysc.github.io/tww-rando-tracker-rs/">stable version</a>
+            {' '}
+            of the tracker for a stable experience.
+          </div>
+          <div style={{ borderTop: '3px solid #bbb', margin: '8px 0' }} />
           <div className="text">
             This tracker is intended to be used for the
             {' '}
