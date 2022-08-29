@@ -847,24 +847,11 @@ button:hover:enabled {
     overflow-y: auto;
     max-height: calc(100vh - 60px);
   }
-
   .settings {
     background-image: none;
 
     table {
       font-size: 1em;
-
-      td.label-text  {
-        padding-left: 10px;
-      }
-
-      td.option-container {
-        padding-right: 10px;
-      }
-
-      select {
-        min-width: unset;
-      }
     }
   }
 
@@ -887,5 +874,56 @@ button:hover:enabled {
 
   .text-col {
     width: 24%;
+  }
+}
+
+.three-state-toggle-input-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  .react-toggle {
+    .react-toggle-track {
+      background-color: #ff4640;
+    }
+
+    &:hover:not(.react-toggle--disabled) {
+      .react-toggle-track {
+        background-color: rgb(255, 100, 95);
+      }
+    }
+
+    &--mid {
+      .react-toggle-track {
+        background-color: #9c9c9c;
+      }
+
+      &:hover:not(.react-toggle--disabled) {
+        .react-toggle-track {
+          background-color: rgb(194, 194, 194);
+        }
+      }
+
+      .react-toggle-thumb {
+        left: 13.5px;
+      }
+    }
+
+    &--checked {
+      .react-toggle-track {
+        background-color: #3783da;
+      }
+
+      &:hover:not(.react-toggle--disabled) {
+        .react-toggle-track {
+          background-color: #4099ff;
+        }
+      }
+    }
+
+    .react-toggle-thumb {
+      border: none;
+      box-shadow: none !important;
+    }
   }
 }
