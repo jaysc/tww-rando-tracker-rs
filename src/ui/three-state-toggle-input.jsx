@@ -9,12 +9,23 @@ class ThreeStateToggleInput extends React.PureComponent {
     const { optionValue } = this.props;
 
     this.state = {
+      hasFocus: false,
       value: optionValue,
     };
 
     this.decrement = this.decrement.bind(this);
     this.increment = this.increment.bind(this);
     this.handleNewValue = this.handleNewValue.bind(this);
+    this.handleFocus = this.handleFocus.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
+  }
+
+  handleFocus() {
+    this.setState({ hasFocus: true });
+  }
+
+  handleBlur() {
+    this.setState({ hasFocus: false });
   }
 
   handleNewValue(newValue) {
@@ -25,6 +36,12 @@ class ThreeStateToggleInput extends React.PureComponent {
 
   decrement(event) {
     event.preventDefault();
+    const { disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
+
     const { value } = this.state;
 
     let newValue = value - 1;
@@ -42,6 +59,12 @@ class ThreeStateToggleInput extends React.PureComponent {
 
   increment(event) {
     event.stopPropagation();
+    const { disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
+
     const { value } = this.state;
 
     let newValue = value + 1;
@@ -58,14 +81,22 @@ class ThreeStateToggleInput extends React.PureComponent {
   }
 
   render() {
-    const { labelText } = this.props;
-    const { value } = this.state;
+    const { disabled, labelText } = this.props;
+    const { hasFocus, value } = this.state;
 
     const toggleClassArray = ['react-toggle'];
     if (value === 1) {
       toggleClassArray.push('react-toggle--mid');
     } else if (value === 2) {
       toggleClassArray.push('react-toggle--checked');
+    }
+
+    if (hasFocus) {
+      toggleClassArray.push('react-toggle--focus');
+    }
+
+    if (disabled) {
+      toggleClassArray.push('react-toggle--disabled');
     }
 
     return (
@@ -99,14 +130,16 @@ class ThreeStateToggleInput extends React.PureComponent {
 ThreeStateToggleInput.displayName = 'ThreeStateToggle';
 
 ThreeStateToggleInput.defaultProps = {
+  disabled: false,
   optionValue: 0,
 };
 
 ThreeStateToggleInput.propTypes = {
+  disabled: PropTypes.bool,
   labelText: PropTypes.string.isRequired,
   optionName: PropTypes.string.isRequired,
   setOptionValue: PropTypes.func.isRequired,
-  optionValue: PropTypes.oneOfType(PropTypes.number),
+  optionValue: PropTypes.number,
 };
 
 export default ThreeStateToggleInput;

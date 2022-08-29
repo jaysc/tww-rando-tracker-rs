@@ -116,6 +116,14 @@ class Settings {
       }
     });
 
+    if (_.get(newCertainSettings, Permalink.OPTIONS.PROGRESSION_TRIFORCE_CHARTS)) {
+      if (_.get(this.options, Permalink.OPTIONS.RANDOMIZE_CHARTS)) {
+        newCertainSettingsFlags.push(this.FLAGS.SUNKEN_TREASURE);
+      } else {
+        newCertainSettingsFlags.push(this.FLAGS.SUNKEN_TRIFORCE);
+      }
+    }
+
     this.certainSettingsFlags = newCertainSettingsFlags;
   }
 
