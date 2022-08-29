@@ -22,7 +22,6 @@ class MapInfo extends React.PureComponent {
 
     const {
       numAvailable,
-      numCertain,
       numRemaining,
     } = logic.locationCounts(selectedLocation, {
       isDungeon: selectedLocationIsDungeon,
@@ -34,8 +33,6 @@ class MapInfo extends React.PureComponent {
       <div className="map-info-container">
         <div className="map-info">{selectedLocation}</div>
         <div className="chest-counts">
-          <span className="chests-available">{numCertain}</span>
-          <span> Certain, </span>
           <span className="chests-available">{numAvailable}</span>
           <span> Accessible, </span>
           <span className="chests-total">{numRemaining}</span>
