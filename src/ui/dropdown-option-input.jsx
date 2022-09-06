@@ -8,13 +8,12 @@ class DropdownOptionInput extends React.PureComponent {
   render() {
     const {
       labelText,
-      optionList: propOptionList,
       optionName,
       optionValue,
       setOptionValue,
     } = this.props;
 
-    const optionsList = propOptionList ?? _.get(Permalink.DROPDOWN_OPTIONS, optionName);
+    const optionsList = _.get(Permalink.DROPDOWN_OPTIONS, optionName);
     const dropdownOptions = _.map(
       optionsList,
       (option) => (
@@ -46,10 +45,6 @@ class DropdownOptionInput extends React.PureComponent {
     );
   }
 }
-
-DropdownOptionInput.defaultProps = {
-  optionList: null,
-};
 
 DropdownOptionInput.propTypes = {
   labelText: PropTypes.string.isRequired,
