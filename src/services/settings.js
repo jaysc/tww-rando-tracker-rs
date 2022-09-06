@@ -78,10 +78,6 @@ class Settings {
     return optionValue;
   }
 
-  static setCertainSetting(optionName, value) {
-    _.set(this.certainSettings, optionName, !!value);
-  }
-
   static getStartingGear() {
     return this.startingGear;
   }
@@ -98,10 +94,6 @@ class Settings {
     this.certainSettings = newCertainSettings;
 
     this.certainSettingsFlags = this.resolveFlags(this.certainSettings);
-  }
-
-  static getFlag(optionName) {
-    return _.get(this._FLAGS_MAPPING, optionName);
   }
 
   static updateOptions(newOptions) {
