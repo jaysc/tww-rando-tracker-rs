@@ -56,7 +56,7 @@ class Tracker extends React.PureComponent {
     this.decrementStartingItem = this.decrementStartingItem.bind(this);
     this.incrementItem = this.incrementItem.bind(this);
     this.incrementStartingItem = this.incrementStartingItem.bind(this);
-    this.refreshLogic = this.refreshLogic.bind(this);
+    this.updateLogic = this.updateLogic.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.toggleDisableLogic = this.toggleDisableLogic.bind(this);
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
@@ -393,7 +393,7 @@ class Tracker extends React.PureComponent {
         trackerState: newTrackerState,
       });
 
-      await this.refreshLogic();
+      await this.updateLogic();
     }
 
     this.setState({
@@ -415,11 +415,16 @@ class Tracker extends React.PureComponent {
     this.updatePreferences({ colors: colorChanges });
   }
 
-  async updateLogic({ newCertainSettings, newOptions }) {
+  async updateLogic(options = {}) {
+    const { newCertainSettings, newOptions } = options;
     const { trackerState } = this.state;
 
-    Settings.updateOptions(newOptions);
-    Settings.updateCertainSettings(newCertainSettings);
+    if (newOptions) {
+      Settings.updateOptions(newOptions);
+    }
+    if (newCertainSettings) {
+      Settings.updateCertainSettings(newCertainSettings);
+    }
     await TrackerController.refreshLogic();
 
     const { logic: newLogic } = TrackerController.refreshState(trackerState);
