@@ -47,7 +47,7 @@ class SettingsWindow extends React.PureComponent {
 
     const newCertainSettings = _.cloneDeep(certainSettings);
 
-    const certainSettingsValue = newValue === Settings.SETTING_STATE.ON;
+    const certainSettingsValue = newValue === Settings.SETTING_STATE.CERTAIN;
 
     if (newValue === Settings.SETTING_STATE.OFF) {
       this.setOptionValue(optionName, false);
@@ -70,9 +70,9 @@ class SettingsWindow extends React.PureComponent {
 
     let optionValueDisplay;
     if (certainSettingsValue) {
-      optionValueDisplay = Settings.SETTING_STATE.ON;
+      optionValueDisplay = Settings.SETTING_STATE.CERTAIN;
     } else {
-      optionValueDisplay = optionValue ? Settings.SETTING_STATE.UNSURE : Settings.SETTING_STATE.OFF;
+      optionValueDisplay = optionValue ? Settings.SETTING_STATE.ON : Settings.SETTING_STATE.OFF;
     }
 
     return (

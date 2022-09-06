@@ -23,8 +23,8 @@ class Settings {
 
   static SETTING_STATE = {
     OFF: 0,
-    UNSURE: 1,
-    ON: 2,
+    ON: 1,
+    CERTAIN: 2,
   };
 
   static initializeRaw(settings) {
