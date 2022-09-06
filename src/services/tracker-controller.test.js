@@ -103,4 +103,29 @@ describe('TrackerController', () => {
       validateReturnedData(refreshedData);
     });
   });
+
+  describe('refreshLogic', () => {
+    let newTrackerState;
+
+    beforeEach(async () => {
+      const { trackerState } = await TrackerController.initializeFromPermalink(
+        Permalink.DEFAULT_PERMALINK,
+      );
+
+      newTrackerState = trackerState;
+    });
+
+    test('resets the logic based on the settings', async () => {
+      Settings.updateOptions({
+        [Permalink.OPTIONS.PROGRESSION_MINIGAMES]: false,
+        [Permalink.OPTIONS.RANDOMIZE_CHARTS]: true,
+        [Permalink.OPTIONS.RANDOMIZE_ENTRANCES]: 'Dungeons and Secret Caves (Separately)',
+      });
+
+      await TrackerController.refreshLogic(newTrackerState);
+
+      expect(Locations.locations).toMatchSnapshot();
+      expect(Macros.macros).toMatchSnapshot();
+    });
+  });
 });

@@ -8,18 +8,20 @@ import Settings from '../services/settings';
 import DropdownOptionInput from './dropdown-option-input';
 import KeyDownWrapper from './key-down-wrapper';
 import OptionsTable from './options-table';
+import ThreeStateToggleInput from './three-state-toggle-input';
 import ToggleOptionInput from './toggle-option-input';
 
 class SettingsWindow extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    const { options } = Settings.readAll();
+    const { certainSettings, options } = Settings.readAll();
 
-    this.state = { options };
+    this.state = { certainSettings, options };
 
-    this.setOptionValue = this.setOptionValue.bind(this);
     this.applySettings = this.applySettings.bind(this);
+    this.setCertainSettings = this.setCertainSettings.bind(this);
+    this.setOptionValue = this.setOptionValue.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -38,6 +40,50 @@ class SettingsWindow extends React.PureComponent {
     this.setState({
       options: newOptions,
     });
+  }
+
+  setCertainSettings(optionName, newValue) {
+    const { certainSettings } = this.state;
+
+    const newCertainSettings = _.cloneDeep(certainSettings);
+
+    const certainSettingsValue = newValue === Settings.SETTING_STATE.CERTAIN;
+
+    if (newValue === Settings.SETTING_STATE.OFF) {
+      this.setOptionValue(optionName, false);
+    } else {
+      this.setOptionValue(optionName, true);
+    }
+
+    _.set(newCertainSettings, optionName, certainSettingsValue);
+
+    this.setState({
+      certainSettings: newCertainSettings,
+    });
+  }
+
+  progresionInput({ labelText, optionName }) {
+    const { certainSettings } = this.state;
+
+    const certainSettingsValue = _.get(certainSettings, optionName);
+    const optionValue = this.getOptionValue(optionName);
+
+    let optionValueDisplay;
+    if (certainSettingsValue) {
+      optionValueDisplay = Settings.SETTING_STATE.CERTAIN;
+    } else {
+      optionValueDisplay = optionValue ? Settings.SETTING_STATE.ON : Settings.SETTING_STATE.OFF;
+    }
+
+    return (
+      <ThreeStateToggleInput
+        key={optionName}
+        labelText={labelText}
+        optionName={optionName}
+        optionValue={optionValueDisplay}
+        setOptionValue={this.setCertainSettings}
+      />
+    );
   }
 
   toggleInput({ labelText, optionName }) {
@@ -74,91 +120,91 @@ class SettingsWindow extends React.PureComponent {
         title="Progress Item Locations"
         numColumns={3}
         options={[
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Dungeons',
             optionName: Permalink.OPTIONS.PROGRESSION_DUNGEONS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Tingle Chests',
             optionName: Permalink.OPTIONS.PROGRESSION_TINGLE_CHESTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Mail',
             optionName: Permalink.OPTIONS.PROGRESSION_MAIL,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Puzzle Secret Caves',
             optionName: Permalink.OPTIONS.PROGRESSION_PUZZLE_SECRET_CAVES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Combat Secret Caves',
             optionName: Permalink.OPTIONS.PROGRESSION_COMBAT_SECRET_CAVES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Savage Labyrinth',
             optionName: Permalink.OPTIONS.PROGRESSION_SAVAGE_LABYRINTH,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Short Sidequests',
             optionName: Permalink.OPTIONS.PROGRESSION_SHORT_SIDEQUESTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Long Sidequests',
             optionName: Permalink.OPTIONS.PROGRESSION_LONG_SIDEQUESTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Spoils Trading',
             optionName: Permalink.OPTIONS.PROGRESSION_SPOILS_TRADING,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Great Fairies',
             optionName: Permalink.OPTIONS.PROGRESSION_GREAT_FAIRIES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Free Gifts',
             optionName: Permalink.OPTIONS.PROGRESSION_FREE_GIFTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Miscellaneous',
             optionName: Permalink.OPTIONS.PROGRESSION_MISC,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Minigames',
             optionName: Permalink.OPTIONS.PROGRESSION_MINIGAMES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Battlesquid Minigame',
             optionName: Permalink.OPTIONS.PROGRESSION_BATTLESQUID,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Expensive Purchases',
             optionName: Permalink.OPTIONS.PROGRESSION_EXPENSIVE_PURCHASES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Island Puzzles',
             optionName: Permalink.OPTIONS.PROGRESSION_ISLAND_PUZZLES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Lookout Platforms and Rafts',
             optionName: Permalink.OPTIONS.PROGRESSION_PLATFORMS_RAFTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Submarines',
             optionName: Permalink.OPTIONS.PROGRESSION_SUBMARINES,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Big Octos and Gunboats',
             optionName: Permalink.OPTIONS.PROGRESSION_BIG_OCTOS_GUNBOATS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Sunken Treasure (From Triforce Charts)',
             optionName: Permalink.OPTIONS.PROGRESSION_TRIFORCE_CHARTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Sunken Treasure (From Treasure Charts)',
             optionName: Permalink.OPTIONS.PROGRESSION_TREASURE_CHARTS,
           }),
-          this.toggleInput({
+          this.progresionInput({
             labelText: 'Eye Reef Chests',
             optionName: Permalink.OPTIONS.PROGRESSION_EYE_REEF_CHESTS,
           }),
@@ -186,7 +232,7 @@ class SettingsWindow extends React.PureComponent {
             optionName: Permalink.OPTIONS.RACE_MODE,
           }),
           this.dropdownInput({
-            labelText: 'Randomize Entrances',
+            labelText: '',
             optionName: Permalink.OPTIONS.RANDOMIZE_ENTRANCES,
           }),
           this.toggleInput({
@@ -198,26 +244,11 @@ class SettingsWindow extends React.PureComponent {
     );
   }
 
-  convenienceTweaksTable() {
-    return (
-      <OptionsTable
-        title="Convenience Tweaks"
-        numColumns={2}
-        options={[
-          this.toggleInput({
-            labelText: 'Skip Boss Rematches',
-            optionName: Permalink.OPTIONS.SKIP_REMATCH_BOSSES,
-          }),
-        ]}
-      />
-    );
-  }
-
-  applySettings() {
-    const { options } = this.state;
+  async applySettings() {
+    const { certainSettings, options } = this.state;
     const { updateLogic, toggleSettingsWindow } = this.props;
 
-    updateLogic(options);
+    await updateLogic({ newCertainSettings: certainSettings, newOptions: options });
     toggleSettingsWindow();
   }
 
@@ -244,7 +275,6 @@ class SettingsWindow extends React.PureComponent {
           <div className="settings">
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
-            {this.convenienceTweaksTable()}
           </div>
           <div className="settings-apply">
             <button

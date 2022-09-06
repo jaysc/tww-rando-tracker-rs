@@ -118,6 +118,10 @@ body {
       line-height: 1.4em;
       text-align: left;
     }
+
+    ul {
+      margin: 4px 0;
+    }
   }
 
   .settings {
@@ -606,6 +610,16 @@ button:hover:enabled {
   color: #2929cc;
 }
 
+.certain-available-location {
+  @extend .available-location;
+  text-decoration: underline;
+}
+
+.certain-unavailable-location {
+  @extend .unavailable-location;
+  text-decoration: underline;
+}
+
 .inconsequential-item {
   color: #a69b8d;
 }
@@ -862,5 +876,58 @@ button:hover:enabled {
     flex-grow: 1;
   }
 
+  .text-col {
+    width: 24%;
+  }
+}
 
+.three-state-toggle-input-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  .react-toggle {
+    .react-toggle-track {
+      background-color: #ff4640;
+    }
+
+    &:hover:not(.react-toggle--disabled) {
+      .react-toggle-track {
+        background-color: rgb(255, 100, 95);
+      }
+    }
+
+    &--mid {
+      .react-toggle-track {
+        background-color: #9c9c9c;
+      }
+
+      &:hover:not(.react-toggle--disabled) {
+        .react-toggle-track {
+          background-color: rgb(194, 194, 194);
+        }
+      }
+
+      .react-toggle-thumb {
+        left: 13.5px;
+      }
+    }
+
+    &--checked {
+      .react-toggle-track {
+        background-color: #3783da;
+      }
+
+      &:hover:not(.react-toggle--disabled) {
+        .react-toggle-track {
+          background-color: #4099ff;
+        }
+      }
+    }
+
+    .react-toggle-thumb {
+      border: none;
+      box-shadow: none !important;
+    }
+  }
 }

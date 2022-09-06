@@ -241,6 +241,25 @@ class LogicHelper {
     return null;
   }
 
+  static isCertainLocationType(generalLocation, detailedLocation) {
+    const locationTypes = Locations.getLocation(
+      generalLocation,
+      detailedLocation,
+      Locations.KEYS.TYPES,
+    );
+
+    if (!locationTypes) {
+      // the Defeat Ganondorf location does not have any types
+      return true;
+    }
+
+    const locationTypesList = _.split(locationTypes, ', ');
+    return _.every(
+      locationTypesList,
+      (flag) => Settings.isCertainFlagActive(flag),
+    );
+  }
+
   static isProgressLocation(generalLocation, detailedLocation) {
     const locationTypes = Locations.getLocation(
       generalLocation,
