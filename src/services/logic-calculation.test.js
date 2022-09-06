@@ -477,6 +477,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 3,
+        numCertain: 0,
         numRemaining: 15,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -491,6 +492,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 0,
+        numCertain: 0,
         numRemaining: 15,
         color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
       });
@@ -505,6 +507,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 5,
+        numCertain: 0,
         numRemaining: 5,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -519,6 +522,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 0,
+        numCertain: 0,
         numRemaining: 6,
         color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
       });
@@ -533,6 +537,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 2,
+        numCertain: 0,
         numRemaining: 4,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -548,6 +553,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 1,
           color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
         });
@@ -562,6 +568,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 1,
+          numCertain: 0,
           numRemaining: 9,
           color: LogicCalculation.LOCATION_COLORS.NON_PROGRESS_LOCATION,
         });
@@ -576,6 +583,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 17,
+          numCertain: 0,
           numRemaining: 38,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -601,6 +609,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 2,
+          numCertain: 0,
           numRemaining: 13,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -615,6 +624,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 0,
           color: LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION,
         });
@@ -639,6 +649,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 15,
+          numCertain: 0,
           numRemaining: 15,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -653,6 +664,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 7,
+          numCertain: 0,
           numRemaining: 15,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -669,6 +681,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 3,
+          numCertain: 0,
           numRemaining: 3,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -683,6 +696,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 1,
+          numCertain: 0,
           numRemaining: 1,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -697,6 +711,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 0,
           color: LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION,
         });
@@ -712,6 +727,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 3,
+            numCertain: 0,
             numRemaining: 3,
             color: LogicCalculation.LOCATION_COLORS.NON_PROGRESS_LOCATION,
           });
@@ -726,6 +742,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 38,
+            numCertain: 0,
             numRemaining: 38,
             color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
           });
@@ -750,6 +767,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 13,
+            numCertain: 0,
             numRemaining: 13,
             color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
           });
