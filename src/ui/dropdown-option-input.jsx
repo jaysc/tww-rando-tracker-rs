@@ -49,7 +49,6 @@ class DropdownOptionInput extends React.PureComponent {
 DropdownOptionInput.propTypes = {
   labelText: PropTypes.string.isRequired,
   optionName: PropTypes.string.isRequired,
-  optionList: PropTypes.arrayOf(PropTypes.string),
   optionValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   setOptionValue: PropTypes.func.isRequired,
 };
