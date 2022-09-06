@@ -607,12 +607,12 @@ button:hover:enabled {
 }
 
 .certain-available-location {
-  color: #2929cc;
+  @extend .available-location;
   text-decoration: underline;
 }
 
 .certain-unavailable-location {
-  color: #cc2929;
+  @extend .unavailable-location;
   text-decoration: underline;
 }
 
