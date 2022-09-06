@@ -53,7 +53,14 @@ describe('LogicCalculation', () => {
       ],
     };
 
+    const certainSettings = {
+      [Permalink.OPTIONS.DUNGEON]: true,
+      [Permalink.OPTIONS.PROGRESSION_GREAT_FAIRIES]: true,
+      [Permalink.OPTIONS.MISC]: true,
+    };
+
     Settings.initializeRaw(_.merge(defaultSettings, settingsOverrides));
+    Settings.updateCertainSettings(certainSettings);
 
     Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
     Macros.initialize(_.cloneDeep(TEST_MACROS));
@@ -681,9 +688,9 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 3,
-          numCertain: 0,
+          numCertain: 1,
           numRemaining: 3,
-          color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
+          color: LogicCalculation.LOCATION_COLORS.CERTAIN_AVAILABLE_LOCATION,
         });
       });
 
@@ -839,6 +846,21 @@ describe('LogicCalculation', () => {
         {
           location: 'Ghost Ship',
           color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
+        },
+      ]);
+    });
+
+    test('returns the correct locations for Western Fairy Island', () => {
+      const locationsList = logic.locationsList('Western Fairy Island', {
+        isDungeon: false,
+        onlyProgressLocations: true,
+        disableLogic: false,
+      });
+
+      expect(locationsList).toEqual([
+        {
+          location: 'Great Fairy',
+          color: LogicCalculation.LOCATION_COLORS.CERTAIN_UNAVAILABLE_LOCATION,
         },
       ]);
     });
@@ -1042,7 +1064,7 @@ describe('LogicCalculation', () => {
           },
           {
             location: 'Great Fairy',
-            color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
+            color: LogicCalculation.LOCATION_COLORS.CERTAIN_AVAILABLE_LOCATION,
           },
         ]);
       });
