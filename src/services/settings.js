@@ -15,19 +15,7 @@ class Settings {
       this.getOptionValue(Permalink.OPTIONS.VERSION),
     );
 
-    _.forEach(this._FLAGS_MAPPING, (flagsForOption, optionName) => {
-      if (this.getOptionValue(optionName)) {
-        this.flags = _.concat(this.flags, flagsForOption);
-      }
-    });
-
-    if (this.getOptionValue(Permalink.OPTIONS.PROGRESSION_TRIFORCE_CHARTS)) {
-      if (this.getOptionValue(Permalink.OPTIONS.RANDOMIZE_CHARTS)) {
-        this.flags.push(this.FLAGS.SUNKEN_TREASURE);
-      } else {
-        this.flags.push(this.FLAGS.SUNKEN_TRIFORCE);
-      }
-    }
+    this.flags = this.resolveFlags(this.options);
 
     this.certainSettings = {};
     this.certainSettingsFlags = {};
@@ -109,22 +97,7 @@ class Settings {
   static updateCertainSettings(newCertainSettings) {
     this.certainSettings = newCertainSettings;
 
-    let newCertainSettingsFlags = [];
-    _.forEach(this._FLAGS_MAPPING, (flagsForOption, optionName) => {
-      if (_.get(this.certainSettings, optionName)) {
-        newCertainSettingsFlags = _.concat(newCertainSettingsFlags, flagsForOption);
-      }
-    });
-
-    if (_.get(newCertainSettings, Permalink.OPTIONS.PROGRESSION_TRIFORCE_CHARTS)) {
-      if (_.get(this.options, Permalink.OPTIONS.RANDOMIZE_CHARTS)) {
-        newCertainSettingsFlags.push(this.FLAGS.SUNKEN_TREASURE);
-      } else {
-        newCertainSettingsFlags.push(this.FLAGS.SUNKEN_TRIFORCE);
-      }
-    }
-
-    this.certainSettingsFlags = newCertainSettingsFlags;
+    this.certainSettingsFlags = this.resolveFlags(this.certainSettings);
   }
 
   static getFlag(optionName) {
