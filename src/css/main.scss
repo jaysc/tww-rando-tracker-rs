@@ -420,6 +420,18 @@ button:hover:enabled {
     left: 0;
     top: 100%;
   }
+
+  .item-info.starting-selection-info {
+    color: white;
+    position: unset;
+  }
+
+  .starting-selection-info {
+    color: red;
+    text-align: center;
+    font-size: 20px;
+    margin-top: 7px;
+  }
 }
 
 .song-notes {
