@@ -40,7 +40,7 @@ export default class Launcher extends React.PureComponent {
             The purpose of this tracker is enable you to alter settings while in progress.
           </div>
           <div className="heading">
-            How to use
+            Changing Settings
           </div>
           <div className="text">
             The default permalink for this tracker will enable all the settings
@@ -50,11 +50,31 @@ export default class Launcher extends React.PureComponent {
             <u>Open Settings Window</u>
             &quot;.
             <br />
-            A pop-up will appear showing the same visuals as the launcher
-            , allowing you change settings as required.
+            A pop-up will appear showing the same visuals as the launcher,
+            allowing you change settings as required.
             <br />
             From there you can make adjustments to the settings, and press apply at the bottom.
             The tracker will reflect the changes you have made.
+          </div>
+          <div className="heading">
+            Toggle States
+          </div>
+          <div className="text">
+            The settings window within the tracker will now show a three-way toggle.
+            <ul>
+              <li>
+                &quot;Off&quot; (Toggle to the left and red)
+                - The setting is turned off.
+              </li>
+              <li>
+                &quot;On&quot; (Toggle is at the centre and grey)
+                - This setting is turned on.
+              </li>
+              <li>
+                &quot;Certain&quot; (Toggle is to the right and blue)
+                - Locations with these settings will additionally have an underline.
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -159,13 +179,15 @@ export default class Launcher extends React.PureComponent {
     const { disableAll } = this.state;
 
     return (
-      <button
-        className="launcher-button"
-        type="button"
-        onClick={this.invertSettingsFunc}
-      >
-        {`${disableAll ? 'Disable all' : 'Enable all'} tracker settings`}
-      </button>
+      <div className="launcher-button-container">
+        <button
+          className="launcher-button"
+          type="button"
+          onClick={this.invertSettingsFunc}
+        >
+          {`${disableAll ? 'Disable all' : 'Enable all'} tracker settings`}
+        </button>
+      </div>
     );
   }
 

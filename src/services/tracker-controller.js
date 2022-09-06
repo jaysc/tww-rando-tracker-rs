@@ -31,8 +31,12 @@ class TrackerController {
 
   static async refreshLogic() {
     const {
+      itemLocationsFile,
       macrosFile,
     } = await LogicLoader.loadLogicFiles();
+
+    Locations.reset();
+    Locations.initialize(itemLocationsFile);
 
     Macros.initialize(macrosFile);
 
