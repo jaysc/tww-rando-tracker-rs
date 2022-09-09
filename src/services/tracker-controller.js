@@ -1,4 +1,3 @@
-import StartingItems from './changed-starting-items';
 import Locations from './locations';
 import LogicCalculation from './logic-calculation';
 import LogicHelper from './logic-helper';

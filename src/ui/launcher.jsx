@@ -35,9 +35,15 @@ export default class Launcher extends React.PureComponent {
           <div className="text">
             This tracker is intended to be used for the
             {' '}
-            <a href="https://github.com/tanjo3/wwrando/releases">Random Settings version of TWW Randomizer.</a>
+            <a href="https://github.com/tanjo3/wwrando/releases">Random Settings version of TWW Randomizer</a>
+            .
             <br />
             The purpose of this tracker is enable you to alter settings while in progress.
+            <br />
+            You can find the standard version of the tracker
+            {' '}
+            <a href="https://www.wooferzfg.me/tww-rando-tracker/">here</a>
+            .
           </div>
           <div className="heading">
             Changing Settings
