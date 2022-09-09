@@ -6,6 +6,7 @@ import LogicTweaks from './logic-tweaks';
 import Macros from './macros';
 import Settings from './settings';
 import Spheres from './spheres';
+import StartingItems from './changed-starting-items';
 import TrackerState from './tracker-state';
 
 class TrackerController {
@@ -19,6 +20,8 @@ class TrackerController {
 
     Locations.initialize(itemLocationsFile);
     Macros.initialize(macrosFile);
+
+    StartingItems.initialize();
 
     LogicTweaks.applyTweaks();
 

@@ -4,8 +4,8 @@ import React from 'react';
 import { Oval } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 
+import ChangedStartingItems from '../services/changed-starting-items';
 import LogicHelper from '../services/logic-helper';
-import Permalink from '../services/permalink';
 import Settings from '../services/settings';
 import Spheres from '../services/spheres';
 import TrackerController from '../services/tracker-controller';
@@ -27,6 +27,7 @@ class Tracker extends React.PureComponent {
     super(props);
 
     this.state = {
+      changedStartingItems: ChangedStartingItems.initialize(),
       colorPickerOpen: false,
       colors: {
         extraLocationsBackground: null,
@@ -34,7 +35,6 @@ class Tracker extends React.PureComponent {
         sphereTrackingBackground: null,
         statisticsBackground: null,
       },
-      pendingChangedStartingItems: {},
       disableLogic: false,
       entrancesListOpen: false,
       isLoading: true,
@@ -157,31 +157,12 @@ class Tracker extends React.PureComponent {
   }
 
   incrementStartingItem(itemName) {
-    const { pendingChangedStartingItems } = this.state;
-    // handle shards
-    const currentItemCount = _.get(
-      pendingChangedStartingItems,
-      itemName,
-      LogicHelper.startingItemCount(itemName) ?? 0,
-    );
+    const { changedStartingItems } = this.state;
 
-    let newItemCount = 1 + currentItemCount;
-    const maxItemCount = LogicHelper.maxItemCount(itemName);
-    if (newItemCount > maxItemCount) {
-      newItemCount = 0;
-    }
-    if (newItemCount === LogicHelper.startingItemCount(itemName)) {
-      newItemCount = null;
-    }
+    const newChangedStartingItems = changedStartingItems
+      .incrementStartingItem(itemName);
 
-    const newPendingChangedStartingItems = _.clone(pendingChangedStartingItems);
-    if (!_.isNil(newItemCount)) {
-      _.set(newPendingChangedStartingItems, itemName, newItemCount);
-    } else {
-      _.unset(newPendingChangedStartingItems, itemName);
-    }
-
-    this.setState({ pendingChangedStartingItems: newPendingChangedStartingItems });
+    this.setState({ changedStartingItems: newChangedStartingItems });
   }
 
   decrementItem(itemName) {
@@ -193,30 +174,12 @@ class Tracker extends React.PureComponent {
   }
 
   decrementStartingItem(itemName) {
-    const { pendingChangedStartingItems } = this.state;
+    const { changedStartingItems } = this.state;
 
-    const currentItemCount = _.get(
-      pendingChangedStartingItems,
-      itemName,
-      LogicHelper.startingItemCount(itemName) ?? 0,
-    );
+    const newChangedStartingItems = changedStartingItems
+      .decrementStartingItem(itemName);
 
-    let newItemCount = currentItemCount - 1;
-    if (newItemCount < 0) {
-      newItemCount = LogicHelper.maxItemCount(itemName);
-    }
-    if (newItemCount === LogicHelper.startingItemCount(itemName)) {
-      newItemCount = null;
-    }
-
-    const newPendingChangedStartingItems = _.clone(pendingChangedStartingItems);
-    if (!_.isNil(newItemCount)) {
-      _.set(newPendingChangedStartingItems, itemName, newItemCount);
-    } else {
-      _.unset(newPendingChangedStartingItems, itemName);
-    }
-
-    this.setState({ pendingChangedStartingItems: newPendingChangedStartingItems });
+    this.setState({ changedStartingItems: newChangedStartingItems });
   }
 
   toggleLocationChecked(generalLocation, detailedLocation) {
@@ -362,43 +325,20 @@ class Tracker extends React.PureComponent {
   }
 
   async toggleStartingItemSelection() {
-    const { pendingChangedStartingItems, startingItemSelection, trackerState } = this.state;
+    const { changedStartingItems, startingItemSelection, trackerState } = this.state;
 
-    if (startingItemSelection && !_.isEmpty(pendingChangedStartingItems)) {
-      const newTrackerState = trackerState._clone({ items: true });
-      const startingGear = Settings.getStartingGear();
-
-      const newChangedStartingItems = _.pickBy(
-        pendingChangedStartingItems,
-        (startingValue, itemName) => {
-          const itemValue = trackerState.getItemValue(itemName);
-          if (startingValue > itemValue) {
-            newTrackerState.setItemValue(itemName, startingValue);
-          }
-
-          if (itemName === LogicHelper.ITEMS.TRIFORCE_SHARD) {
-            Settings.setOptionsValue(Permalink.OPTIONS.NUM_STARTING_TRIFORCE_SHARDS, startingValue);
-            return false;
-          }
-
-          return true;
-        },
-      );
-
-      const newStartingGear = _.merge(startingGear, newChangedStartingItems);
-      Settings.updateStartingGear(newStartingGear);
-
-      this.setState({
-        pendingChangedStartingItems: {},
-        trackerState: newTrackerState,
-      });
-
-      await this.updateLogic();
-    }
+    const {
+      newChangedStartingItems,
+      newTrackerState,
+    } = changedStartingItems.applyChangedStartingItems(trackerState);
 
     this.setState({
+      changedStartingItems: newChangedStartingItems,
       startingItemSelection: !startingItemSelection,
+      trackerState: newTrackerState,
     });
+
+    await this.updateLogic();
   }
 
   toggleTrackSpheres() {
@@ -455,9 +395,9 @@ class Tracker extends React.PureComponent {
 
   render() {
     const {
+      changedStartingItems,
       colorPickerOpen,
       colors,
-      pendingChangedStartingItems,
       disableLogic,
       entrancesListOpen,
       isLoading,
@@ -496,7 +436,7 @@ class Tracker extends React.PureComponent {
           <div className="tracker">
             <ItemsTable
               backgroundColor={itemsTableBackground}
-              pendingChangedStartingItems={pendingChangedStartingItems}
+              changedStartingItems={changedStartingItems}
               decrementItem={this.decrementItem}
               decrementStartingItem={this.decrementStartingItem}
               incrementItem={this.incrementItem}

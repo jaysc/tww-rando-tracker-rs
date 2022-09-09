@@ -2,6 +2,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import ChangedStartingItems from '../services/changed-starting-items';
 import LogicHelper from '../services/logic-helper';
 import Spheres from '../services/spheres';
 import TrackerState from '../services/tracker-state';
@@ -32,13 +33,23 @@ class ItemsTable extends React.PureComponent {
 
   itemInfo() {
     const { selectedItem } = this.state;
-    const { startingItemSelection, trackerState } = this.props;
+    const {
+      changedStartingItems,
+      startingItemSelection,
+      trackerState,
+    } = this.props;
 
     if (_.isNil(selectedItem)) {
       return null;
     }
 
-    const itemCount = trackerState.getItemValue(selectedItem);
+    let itemCount;
+    if (startingItemSelection) {
+      itemCount = changedStartingItems.getItemCount(selectedItem);
+    } else {
+      itemCount = trackerState.getItemValue(selectedItem);
+    }
+
     const itemInfoText = LogicHelper.prettyNameForItem(selectedItem, itemCount);
 
     const className = ['item-info'];
@@ -93,16 +104,12 @@ class ItemsTable extends React.PureComponent {
 
   startingItem(itemName) {
     const {
-      pendingChangedStartingItems,
       decrementStartingItem,
       incrementStartingItem,
+      changedStartingItems,
     } = this.props;
 
-    const itemCount = _.get(
-      pendingChangedStartingItems,
-      itemName,
-      LogicHelper.startingItemCount(itemName) ?? 0,
-    );
+    const itemCount = changedStartingItems.getItemCount(itemName);
     const itemImages = _.get(Images.IMAGES, ['ITEMS', itemName]);
 
     return (
@@ -250,8 +257,7 @@ ItemsTable.defaultProps = {
 
 ItemsTable.propTypes = {
   backgroundColor: PropTypes.string,
-  // eslint-disable-next-line react/forbid-prop-types
-  pendingChangedStartingItems: PropTypes.object.isRequired,
+  changedStartingItems: PropTypes.instanceOf(ChangedStartingItems).isRequired,
   decrementItem: PropTypes.func.isRequired,
   decrementStartingItem: PropTypes.func.isRequired,
   incrementItem: PropTypes.func.isRequired,
