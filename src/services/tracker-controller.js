@@ -1,3 +1,4 @@
+import StartingItems from './changed-starting-items';
 import Locations from './locations';
 import LogicCalculation from './logic-calculation';
 import LogicHelper from './logic-helper';
@@ -6,7 +7,6 @@ import LogicTweaks from './logic-tweaks';
 import Macros from './macros';
 import Settings from './settings';
 import Spheres from './spheres';
-import StartingItems from './changed-starting-items';
 import TrackerState from './tracker-state';
 
 class TrackerController {
