@@ -13,16 +13,57 @@ class ChangedStartingItems {
     return newChangedStartingItems;
   }
 
-  reset() {
-    this.changedItems = {};
-  }
+  applyChangedStartingItems(trackerState) {
+    let newTrackerState = trackerState;
 
-  getItemCount(itemName) {
-    return _.get(
-      this.changedItems,
-      itemName,
-      LogicHelper.startingItemCount(itemName) ?? 0,
-    );
+    if (this.changedItems) {
+      newTrackerState = trackerState._clone({ items: true });
+      const startingGear = Settings.getStartingGear();
+
+      const newChangedStartingItems = _.pickBy(
+        this.changedItems,
+        (startingValue, itemName) => {
+          const itemValue = trackerState.getItemValue(itemName);
+          if (startingValue > itemValue) {
+            newTrackerState.setItemValue(itemName, startingValue);
+          }
+
+          if (itemName === LogicHelper.ITEMS.TRIFORCE_SHARD) {
+            Settings.setOptionValue(Permalink.OPTIONS.NUM_STARTING_TRIFORCE_SHARDS, startingValue);
+            return false;
+          }
+
+          if (itemName === LogicHelper.ITEMS.PROGRESSIVE_SWORD) {
+            // Need to handle starting with master sword
+            if (startingValue >= 1) {
+              Settings.setOptionValue(
+                Permalink.OPTIONS.SWORD_MODE,
+                Permalink.SWORD_MODE_OPTIONS.START_WITH_HEROS_SWORD,
+              );
+            } else if (startingValue === 0) {
+              Settings.setOptionValue(
+                Permalink.OPTIONS.SWORD_MODE,
+                Permalink.SWORD_MODE_OPTIONS.NO_STARTING_SWORD,
+              );
+            }
+
+            return false;
+          }
+
+          return true;
+        },
+      );
+
+      const newStartingGear = _.merge(startingGear, newChangedStartingItems);
+      Settings.updateStartingGear(newStartingGear);
+
+      this.reset();
+    }
+
+    return {
+      newChangedStartingItems: this,
+      newTrackerState,
+    };
   }
 
   incrementStartingItem(itemName) {
@@ -69,39 +110,16 @@ class ChangedStartingItems {
     return newChangedStartingItems;
   }
 
-  applyChangedStartingItems(trackerState) {
-    const newTrackerState = trackerState._clone({ items: true });
+  getItemCount(itemName) {
+    return _.get(
+      this.changedItems,
+      itemName,
+      LogicHelper.startingItemCount(itemName) ?? 0,
+    );
+  }
 
-    if (this.changedItems) {
-      const startingGear = Settings.getStartingGear();
-
-      const newChangedStartingItems = _.pickBy(
-        this.changedItems,
-        (startingValue, itemName) => {
-          const itemValue = trackerState.getItemValue(itemName);
-          if (startingValue > itemValue) {
-            newTrackerState.setItemValue(itemName, startingValue);
-          }
-
-          if (itemName === LogicHelper.ITEMS.TRIFORCE_SHARD) {
-            Settings.setOptionValue(Permalink.OPTIONS.NUM_STARTING_TRIFORCE_SHARDS, startingValue);
-            return false;
-          }
-
-          return true;
-        },
-      );
-
-      const newStartingGear = _.merge(startingGear, newChangedStartingItems);
-      Settings.updateStartingGear(newStartingGear);
-
-      this.reset();
-    }
-
-    return {
-      newChangedStartingItems: this,
-      newTrackerState,
-    };
+  reset() {
+    this.changedItems = {};
   }
 }
 
