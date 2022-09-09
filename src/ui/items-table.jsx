@@ -147,7 +147,7 @@ class ItemsTable extends React.PureComponent {
     const { backgroundColor, startingItemSelection } = this.props;
 
     return (
-      <div className={`item-tracker ${backgroundColor ? 'single-color' : ''}`}>
+      <div className={`item-tracker ${backgroundColor ? 'single-color' : ''} ${startingItemSelection ? 'darken-background-z-index' : ''}`}>
         <div
           className="item-tracker-background"
           style={{ backgroundColor }}
