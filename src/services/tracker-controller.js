@@ -21,8 +21,6 @@ class TrackerController {
     Locations.initialize(itemLocationsFile);
     Macros.initialize(macrosFile);
 
-    StartingItems.initialize();
-
     LogicTweaks.applyTweaks();
 
     LogicHelper.initialize();

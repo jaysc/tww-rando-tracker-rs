@@ -52,13 +52,8 @@ class ItemsTable extends React.PureComponent {
 
     const itemInfoText = LogicHelper.prettyNameForItem(selectedItem, itemCount);
 
-    const className = ['item-info'];
-    if (startingItemSelection) {
-      className.push('starting-selection-info');
-    }
-
     return (
-      <span className={className.join(' ')}>
+      <span className={`item-info ${startingItemSelection ? 'starting-selection-info' : ''}`}>
         {itemInfoText}
       </span>
     );
@@ -74,7 +69,7 @@ class ItemsTable extends React.PureComponent {
       trackSpheres,
     } = this.props;
 
-    // Implementation like this so we don't have to rewire all the elements
+    // Implementation like this so we don't have to rewire all elements
     if (startingItemSelection) {
       return this.startingItem(itemName);
     }

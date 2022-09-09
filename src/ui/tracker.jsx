@@ -56,7 +56,6 @@ class Tracker extends React.PureComponent {
     this.decrementStartingItem = this.decrementStartingItem.bind(this);
     this.incrementItem = this.incrementItem.bind(this);
     this.incrementStartingItem = this.incrementStartingItem.bind(this);
-    this.updateLogic = this.updateLogic.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.toggleDisableLogic = this.toggleDisableLogic.bind(this);
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
