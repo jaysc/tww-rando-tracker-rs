@@ -511,6 +511,12 @@ class LogicHelper {
     return _.concat(dungeonLocations, additionalLocations);
   }
 
+  static isLockedStartingItem(itemName) {
+    return itemName === LogicHelper.ITEMS.WINDS_REQUIEM
+    || itemName === LogicHelper.ITEMS.BOATS_SAIL
+    || itemName === LogicHelper.ITEMS.WIND_WAKER;
+  }
+
   static _prettyNameOverride(itemName, itemCount = 1) {
     if (Settings.getOptionValue(Permalink.OPTIONS.RANDOMIZE_CHARTS) && itemName.match(/(Treasure|Triforce) Chart (\d)+/)) {
       const islandIndex = _.indexOf(CHARTS, itemName);

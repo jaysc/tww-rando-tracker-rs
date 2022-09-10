@@ -2103,6 +2103,20 @@ describe('LogicHelper', () => {
     });
   });
 
+  describe('isLockedStartingItem', () => {
+    test("returns true for wind's requiem", () => {
+      expect(LogicHelper.isLockedStartingItem("Wind's Requiem")).toBe(true);
+    });
+
+    test("returns true for Boat's sail", () => {
+      expect(LogicHelper.isLockedStartingItem("Boat's Sail")).toBe(true);
+    });
+
+    test('returns true for wind waker', () => {
+      expect(LogicHelper.isLockedStartingItem('Wind Waker')).toBe(true);
+    });
+  });
+
   describe('_rawRequirementsForLocation', () => {
     describe('when the location has no requirements', () => {
       beforeEach(() => {

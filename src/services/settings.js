@@ -78,8 +78,16 @@ class Settings {
     return optionValue;
   }
 
+  static setOptionValue(optionName, optionValue) {
+    _.set(this.options, optionName, optionValue);
+  }
+
   static getStartingGear() {
     return this.startingGear;
+  }
+
+  static updateStartingGear(newStartingGear) {
+    this.startingGear = newStartingGear;
   }
 
   static getVersion() {
