@@ -261,7 +261,12 @@ class Tracker extends React.PureComponent {
   unsetExit(dungeonOrCaveName) {
     const { trackerState } = this.state;
 
-    const entryName = LogicHelper.entryName(dungeonOrCaveName);
+    let entryName;
+    if (LogicHelper.isAlternativeEntrance()) {
+      entryName = LogicHelper.entryName(trackerState.getExitForEntrance(dungeonOrCaveName));
+    } else {
+      entryName = LogicHelper.entryName(dungeonOrCaveName);
+    }
     const newTrackerState = trackerState
       .incrementItem(entryName)
       .unsetEntranceForExit(dungeonOrCaveName);
@@ -273,9 +278,17 @@ class Tracker extends React.PureComponent {
     const { trackerState } = this.state;
 
     const entryName = LogicHelper.entryName(exitName);
-    const newTrackerState = trackerState
-      .incrementItem(entryName)
-      .setEntranceForExit(exitName, entranceName);
+
+    let newTrackerState;
+    if (LogicHelper.isAlternativeEntrance()) {
+      newTrackerState = trackerState
+        .incrementItem(entryName)
+        .setEntranceForExit(entranceName, exitName);
+    } else {
+      newTrackerState = trackerState
+        .incrementItem(entryName)
+        .setEntranceForExit(exitName, entranceName);
+    }
 
     this.updateTrackerState(newTrackerState);
     this.clearOpenedMenus();
@@ -355,7 +368,7 @@ class Tracker extends React.PureComponent {
   }
 
   async updateLogic(options = {}) {
-    const { newCertainSettings, newOptions } = options;
+    const { newCertainSettings, newOptions, newTrackerSettings } = options;
     const { trackerState } = this.state;
 
     if (newOptions) {
@@ -364,6 +377,10 @@ class Tracker extends React.PureComponent {
     if (newCertainSettings) {
       Settings.updateCertainSettings(newCertainSettings);
     }
+    if (newTrackerSettings) {
+      Settings.updateTrackerSettings(newTrackerSettings);
+    }
+
     await TrackerController.refreshLogic();
 
     const { logic: newLogic } = TrackerController.refreshState(trackerState);

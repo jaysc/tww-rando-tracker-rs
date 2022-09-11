@@ -98,7 +98,13 @@ class TrackerState {
 
   unsetEntranceForExit(dungeonOrCaveName) {
     const newState = this._clone({ entrances: true });
-    _.unset(newState.entrances, dungeonOrCaveName);
+
+    if (LogicHelper.isAlternativeEntrance()) {
+      const exit = this.getExitForEntrance(dungeonOrCaveName);
+      _.unset(newState.entrances, exit);
+    } else {
+      _.unset(newState.entrances, dungeonOrCaveName);
+    }
     return newState;
   }
 

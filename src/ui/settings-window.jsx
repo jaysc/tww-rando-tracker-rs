@@ -15,13 +15,14 @@ class SettingsWindow extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    const { certainSettings, options } = Settings.readAll();
+    const { certainSettings, options, trackerSettings } = Settings.readAll();
 
-    this.state = { certainSettings, options };
+    this.state = { certainSettings, options, trackerSettings };
 
     this.applySettings = this.applySettings.bind(this);
     this.setCertainSettings = this.setCertainSettings.bind(this);
     this.setOptionValue = this.setOptionValue.bind(this);
+    this.setTrackerSettingsValue = this.setTrackerSettingsValue.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -39,6 +40,24 @@ class SettingsWindow extends React.PureComponent {
 
     this.setState({
       options: newOptions,
+    });
+  }
+
+  getTrackerSettingsValue(optionName) {
+    const { trackerSettings } = this.state;
+
+    return _.get(trackerSettings, optionName);
+  }
+
+  setTrackerSettingsValue(optionName, newValue) {
+    const { trackerSettings } = this.state;
+
+    const newTrackerSettings = _.cloneDeep(trackerSettings);
+
+    _.set(newTrackerSettings, optionName, newValue);
+
+    this.setState({
+      trackerSettings: newTrackerSettings,
     });
   }
 
@@ -110,6 +129,20 @@ class SettingsWindow extends React.PureComponent {
         optionName={optionName}
         optionValue={optionValue}
         setOptionValue={this.setOptionValue}
+      />
+    );
+  }
+
+  trackerSettingsToggleInput({ labelText, optionName }) {
+    const optionValue = this.getTrackerSettingsValue(optionName) ?? false;
+
+    return (
+      <ToggleOptionInput
+        key={optionName}
+        labelText={labelText}
+        optionName={optionName}
+        optionValue={optionValue}
+        setOptionValue={this.setTrackerSettingsValue}
       />
     );
   }
@@ -244,11 +277,30 @@ class SettingsWindow extends React.PureComponent {
     );
   }
 
+  trackerSettings() {
+    return (
+      <OptionsTable
+        title="Additional Randomization Options"
+        numColumns={2}
+        options={[
+          this.trackerSettingsToggleInput({
+            labelText: 'Alternative entrance selection',
+            optionName: Settings.TRACKER.ALTERNATIVE_ENTRANCE,
+          }),
+        ]}
+      />
+    );
+  }
+
   async applySettings() {
-    const { certainSettings, options } = this.state;
+    const { certainSettings, options, trackerSettings } = this.state;
     const { updateLogic, toggleSettingsWindow } = this.props;
 
-    await updateLogic({ newCertainSettings: certainSettings, newOptions: options });
+    await updateLogic({
+      newCertainSettings: certainSettings,
+      newOptions: options,
+      newTrackerSettings: trackerSettings,
+    });
     toggleSettingsWindow();
   }
 
@@ -275,6 +327,7 @@ class SettingsWindow extends React.PureComponent {
           <div className="settings">
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
+            {this.trackerSettings()}
           </div>
           <div className="settings-apply">
             <button

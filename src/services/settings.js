@@ -6,6 +6,16 @@ import Constants from './constants';
 import Permalink from './permalink';
 
 class Settings {
+  static TRACKER = {
+    ALTERNATIVE_ENTRANCE: 'alternative_entrance',
+  };
+
+  static SETTING_STATE = {
+    OFF: 0,
+    ON: 1,
+    CERTAIN: 2,
+  };
+
   static initializeFromPermalink(permalinkString) {
     this.options = Permalink.decode(permalinkString);
 
@@ -19,13 +29,9 @@ class Settings {
 
     this.certainSettings = {};
     this.certainSettingsFlags = {};
-  }
 
-  static SETTING_STATE = {
-    OFF: 0,
-    ON: 1,
-    CERTAIN: 2,
-  };
+    this.trackerSettings = {};
+  }
 
   static initializeRaw(settings) {
     this.certainSettings = settings.certainSettings;
@@ -33,6 +39,7 @@ class Settings {
     this.flags = settings.flags;
     this.options = settings.options;
     this.startingGear = settings.startingGear;
+    this.trackerSettings = settings.trackerSettings;
     this.version = settings.version;
   }
 
@@ -42,6 +49,7 @@ class Settings {
     this.flags = null;
     this.options = null;
     this.startingGear = null;
+    this.trackerSettings = null;
     this.version = null;
   }
 
@@ -49,12 +57,13 @@ class Settings {
 
   static readAll() {
     return {
+      certainSettings: this.certainSettings,
+      certainSettingsFlags: this.certainSettingsFlags,
       flags: this.flags,
       options: this.options,
       startingGear: this.startingGear,
+      trackerSettings: this.trackerSettings,
       version: this.version,
-      certainSettings: this.certainSettings,
-      certainSettingsFlags: this.certainSettingsFlags,
     };
   }
 
@@ -126,6 +135,14 @@ class Settings {
     }
 
     return flags;
+  }
+
+  static updateTrackerSettings(newTrackerSettings) {
+    this.trackerSettings = newTrackerSettings;
+  }
+
+  static getTrackerSettingsValue(optionName) {
+    return _.get(this.trackerSettings, optionName);
   }
 
   static _FLAGS_MAPPING = {

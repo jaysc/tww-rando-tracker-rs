@@ -106,6 +106,42 @@ class LogicCalculation {
     };
   }
 
+  getCaveLocationsListForEntrance(
+    generalLocation,
+    { isDungeon, onlyProgressLocations, disableLogic },
+  ) {
+    const { entrances } = this.state;
+    const caves = _.compact(LogicHelper.cavesForIsland(generalLocation));
+
+    const exits = _.compact(
+      caves.map((cave) => _.findKey(entrances, (entrance) => entrance === cave)),
+    );
+
+    let newGeneralLocations;
+    if (!_.isEmpty(exits)) {
+      newGeneralLocations = exits.map((exit) => LogicHelper.getIslandForCave(exit));
+    }
+
+    let newDetailedLocations = [];
+    if (!_.isEmpty(newGeneralLocations)) {
+      newDetailedLocations = newGeneralLocations
+        .map((newGeneralLocation) => this.locationsList(newGeneralLocation, {
+          isDungeon,
+          onlyProgressLocations,
+          disableLogic,
+        })
+          .filter(({ location }) => location.includes('Cave'))
+          .map(
+            (newDetailedLocation) => ({
+              ...newDetailedLocation,
+              generalLocation: newGeneralLocation,
+            }),
+          ));
+    }
+
+    return newDetailedLocations.flat(2);
+  }
+
   locationsList(generalLocation, { isDungeon, onlyProgressLocations, disableLogic }) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,

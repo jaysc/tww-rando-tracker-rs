@@ -208,6 +208,10 @@ class LogicHelper {
     );
   }
 
+  static isAlternativeEntrance() {
+    return Settings.getTrackerSettingsValue(Settings.TRACKER.ALTERNATIVE_ENTRANCE);
+  }
+
   static allRandomEntrances() {
     return _.concat(
       this.isRandomDungeonEntrances() ? this.mainDungeons() : [],

@@ -52,14 +52,26 @@ class MapInfo extends React.PureComponent {
     let itemInfoText;
 
     if (!_.isNil(selectedExit)) {
-      const entranceForExit = trackerState.getEntranceForExit(selectedExit);
+      if (LogicHelper.isAlternativeEntrance()) {
+        const exitForEntrance = trackerState.getExitForEntrance(selectedExit);
 
-      if (!_.isNil(entranceForExit)) {
-        const shortEntranceName = LogicHelper.shortEntranceName(entranceForExit);
-        const shortExitName = LogicHelper.shortEntranceName(selectedExit);
-        itemInfoText = `${shortEntranceName} → ${shortExitName}`;
+        if (!_.isNil(exitForEntrance)) {
+          const shortExitName = LogicHelper.shortEntranceName(exitForEntrance);
+          const shortEntranceName = LogicHelper.shortEntranceName(selectedExit);
+          itemInfoText = `${shortEntranceName} → ${shortExitName}`;
+        } else {
+          itemInfoText = LogicHelper.entryName(selectedExit);
+        }
       } else {
-        itemInfoText = LogicHelper.entryName(selectedExit);
+        const entranceForExit = trackerState.getEntranceForExit(selectedExit);
+
+        if (!_.isNil(entranceForExit)) {
+          const shortEntranceName = LogicHelper.shortEntranceName(entranceForExit);
+          const shortExitName = LogicHelper.shortEntranceName(selectedExit);
+          itemInfoText = `${shortEntranceName} → ${shortExitName}`;
+        } else {
+          itemInfoText = LogicHelper.entryName(selectedExit);
+        }
       }
     }
 

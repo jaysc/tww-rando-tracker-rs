@@ -95,6 +95,20 @@ class Sector extends React.PureComponent {
 
     const cavesForIsland = LogicHelper.cavesForIsland(island);
 
+    if (LogicHelper.isAlternativeEntrance()) {
+      return _.map(cavesForIsland, (caveName) => {
+        const leadsTo = trackerState.getExitForEntrance(caveName);
+        const entryName = LogicHelper.entryName(leadsTo ?? caveName);
+        const entryCount = leadsTo ? trackerState.getItemValue(entryName) : 0;
+
+        return {
+          entryCount,
+          entryName,
+          locationName: caveName,
+        };
+      });
+    }
+
     return _.map(cavesForIsland, (caveName) => {
       const entryName = LogicHelper.entryName(caveName);
       const entryCount = trackerState.getItemValue(entryName);
