@@ -12,12 +12,56 @@ class MapInfo extends React.PureComponent {
       disableLogic,
       logic,
       onlyProgressLocations,
+      selectedExit,
+      selectedItem,
       selectedLocation,
       selectedLocationIsDungeon,
+      trackerState,
     } = this.props;
 
     if (_.isNil(selectedLocation)) {
       return null;
+    }
+
+    let entranceString;
+    if (_.isNil(selectedExit) && _.isNil(selectedItem)) {
+      const entranceInfo = [];
+      const cavesForIsland = LogicHelper.cavesForIsland(selectedLocation);
+      if (!_.isNil(cavesForIsland) && !_.isEmpty(cavesForIsland)) {
+        cavesForIsland.forEach((cave) => {
+          const entrance = _.findKey(
+            trackerState.entrances,
+            (exit) => exit === (cave),
+          );
+
+          if (entrance) {
+            entranceInfo.push({
+              entrance,
+              exit: cave,
+            });
+          }
+        });
+      } else {
+        const entrance = _.findKey(
+          trackerState.entrances,
+          (exit) => exit === (selectedLocation),
+        );
+
+        if (entrance) {
+          entranceInfo.push({
+            entrance,
+            exit: selectedLocation,
+          });
+        }
+      }
+
+      if (!_.isNil(entranceInfo)) {
+        entranceString = (
+          <div className="map-item-info">
+            { entranceInfo.map(({ entrance, exit }, index) => `${index > 0 ? '\n' : ''}${entrance} → ${exit}`)}
+          </div>
+        );
+      }
     }
 
     const {
@@ -31,7 +75,10 @@ class MapInfo extends React.PureComponent {
 
     return (
       <div className="map-info-container">
-        <div className="map-info">{selectedLocation}</div>
+        <div className="map-info">
+          {selectedLocation}
+        </div>
+        {entranceString}
         <div className="chest-counts">
           <span className="chests-available">{numAvailable}</span>
           <span> Accessible, </span>
@@ -57,7 +104,7 @@ class MapInfo extends React.PureComponent {
       if (!_.isNil(entranceForExit)) {
         const shortEntranceName = LogicHelper.shortEntranceName(entranceForExit);
         const shortExitName = LogicHelper.shortEntranceName(selectedExit);
-        itemInfoText = `${shortEntranceName} → ${shortExitName}`;
+        itemInfoText = `${shortExitName} → ${shortEntranceName}`;
       } else {
         itemInfoText = LogicHelper.entryName(selectedExit);
       }

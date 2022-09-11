@@ -142,7 +142,7 @@ class LogicCalculation {
   entrancesListForExit(dungeonOrCaveName, { disableLogic }) {
     return this._entrancesListForEntrances(
       LogicHelper.randomEntrancesForExit(dungeonOrCaveName),
-      { disableLogic },
+      { disableLogic, openedExit: dungeonOrCaveName },
     );
   }
 
@@ -228,15 +228,16 @@ class LogicCalculation {
     return this._areRequirementsMet(requirementsForLocation);
   }
 
-  isEntranceAvailable(dungeonOrCaveName) {
-    const requirementsForEntrance = LogicHelper.requirementsForEntrance(dungeonOrCaveName);
+  isEntranceAvailable(dungeonOrCaveName, openedExit) {
+    const requirementsForEntrance = LogicHelper
+      .requirementsForEntrance(openedExit ?? dungeonOrCaveName);
 
     return this._areRequirementsMet(requirementsForEntrance);
   }
 
-  _entrancesListForEntrances(entrances, { disableLogic }) {
+  _entrancesListForEntrances(entrances, { disableLogic, openedExit }) {
     return _.map(entrances, (dungeonOrCaveName) => {
-      const isAvailable = this.isEntranceAvailable(dungeonOrCaveName);
+      const isAvailable = this.isEntranceAvailable(dungeonOrCaveName, openedExit);
       const isChecked = this.state.isEntranceChecked(dungeonOrCaveName);
 
       const color = LogicCalculation._locationColor(

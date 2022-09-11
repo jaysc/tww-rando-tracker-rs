@@ -261,7 +261,9 @@ class Tracker extends React.PureComponent {
   unsetExit(dungeonOrCaveName) {
     const { trackerState } = this.state;
 
-    const entryName = LogicHelper.entryName(dungeonOrCaveName);
+    const leadsTo = _.get(trackerState, ['entrances', dungeonOrCaveName], dungeonOrCaveName);
+
+    const entryName = LogicHelper.entryName(leadsTo);
     const newTrackerState = trackerState
       .incrementItem(entryName)
       .unsetEntranceForExit(dungeonOrCaveName);
@@ -272,7 +274,7 @@ class Tracker extends React.PureComponent {
   updateEntranceForExit(exitName, entranceName) {
     const { trackerState } = this.state;
 
-    const entryName = LogicHelper.entryName(exitName);
+    const entryName = LogicHelper.entryName(entranceName);
     const newTrackerState = trackerState
       .incrementItem(entryName)
       .setEntranceForExit(exitName, entranceName);
