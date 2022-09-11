@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Permalink DEFAULT_PERMALINK returns the default options 1`] = `
-Object {
+{
   "add_shortcut_warps_between_dungeons": true,
   "chest_type_matches_contents": true,
   "do_not_generate_spoiler_log": false,
@@ -46,7 +46,7 @@ Object {
   "reveal_full_sea_chart": true,
   "seed_name": "testing123",
   "skip_rematch_bosses": true,
-  "starting_gear": Object {
+  "starting_gear": {
     "Bait Bag": 0,
     "Ballad of Gales": 1,
     "Bombs": 0,
@@ -107,8 +107,8 @@ Object {
 `;
 
 exports[`Permalink DROPDOWN_OPTIONS returns the correct dropdown options 1`] = `
-Object {
-  "num_race_mode_dungeons": Array [
+{
+  "num_race_mode_dungeons": [
     1,
     2,
     3,
@@ -116,7 +116,7 @@ Object {
     5,
     6,
   ],
-  "num_starting_triforce_shards": Array [
+  "num_starting_triforce_shards": [
     0,
     1,
     2,
@@ -127,14 +127,14 @@ Object {
     7,
     8,
   ],
-  "randomize_entrances": Array [
+  "randomize_entrances": [
     "Disabled",
     "Dungeons",
     "Secret Caves",
     "Dungeons and Secret Caves (Separately)",
     "Dungeons and Secret Caves (Together)",
   ],
-  "sword_mode": Array [
+  "sword_mode": [
     "Start with Hero's Sword",
     "No Starting Sword",
     "Swordless",
@@ -143,7 +143,7 @@ Object {
 `;
 
 exports[`Permalink OPTIONS returns the correct options 1`] = `
-Object {
+{
   "ADD_SHORTCUT_WARPS_BETWEEN_DUNGEONS": "add_shortcut_warps_between_dungeons",
   "CHEST_TYPE_MATCHES_CONTENTS": "chest_type_matches_contents",
   "DO_NOT_GENERATE_SPOILER_LOG": "do_not_generate_spoiler_log",
@@ -200,7 +200,7 @@ Object {
 `;
 
 exports[`Permalink RANDOMIZE_ENTRANCES_OPTIONS returns the correct options 1`] = `
-Object {
+{
   "DISABLED": "Disabled",
   "DUNGEONS": "Dungeons",
   "DUNGEONS_AND_SECRET_CAVES_SEPARATELY": "Dungeons and Secret Caves (Separately)",
@@ -210,7 +210,7 @@ Object {
 `;
 
 exports[`Permalink SWORD_MODE_OPTIONS returns the correct options 1`] = `
-Object {
+{
   "NO_STARTING_SWORD": "No Starting Sword",
   "START_WITH_HEROS_SWORD": "Start with Hero's Sword",
   "SWORDLESS": "Swordless",
@@ -218,7 +218,7 @@ Object {
 `;
 
 exports[`Permalink decode decodes a permalink 1`] = `
-Object {
+{
   "add_shortcut_warps_between_dungeons": false,
   "chest_type_matches_contents": false,
   "do_not_generate_spoiler_log": false,
@@ -263,7 +263,7 @@ Object {
   "reveal_full_sea_chart": true,
   "seed_name": "A",
   "skip_rematch_bosses": true,
-  "starting_gear": Object {
+  "starting_gear": {
     "Bait Bag": 0,
     "Ballad of Gales": 1,
     "Bombs": 0,

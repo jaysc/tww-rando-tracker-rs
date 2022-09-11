@@ -53,7 +53,14 @@ describe('LogicCalculation', () => {
       ],
     };
 
+    const certainSettings = {
+      [Permalink.OPTIONS.DUNGEON]: true,
+      [Permalink.OPTIONS.PROGRESSION_GREAT_FAIRIES]: true,
+      [Permalink.OPTIONS.MISC]: true,
+    };
+
     Settings.initializeRaw(_.merge(defaultSettings, settingsOverrides));
+    Settings.updateCertainSettings(certainSettings);
 
     Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
     Macros.initialize(_.cloneDeep(TEST_MACROS));
@@ -477,6 +484,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 3,
+        numCertain: 0,
         numRemaining: 15,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -491,6 +499,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 0,
+        numCertain: 0,
         numRemaining: 15,
         color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
       });
@@ -505,6 +514,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 5,
+        numCertain: 0,
         numRemaining: 5,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -519,6 +529,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 0,
+        numCertain: 0,
         numRemaining: 6,
         color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
       });
@@ -533,6 +544,7 @@ describe('LogicCalculation', () => {
 
       expect(locationCounts).toEqual({
         numAvailable: 2,
+        numCertain: 0,
         numRemaining: 4,
         color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
       });
@@ -548,6 +560,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 1,
           color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
         });
@@ -562,6 +575,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 1,
+          numCertain: 0,
           numRemaining: 9,
           color: LogicCalculation.LOCATION_COLORS.NON_PROGRESS_LOCATION,
         });
@@ -576,6 +590,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 17,
+          numCertain: 0,
           numRemaining: 38,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -601,6 +616,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 2,
+          numCertain: 0,
           numRemaining: 13,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -615,6 +631,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 0,
           color: LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION,
         });
@@ -639,6 +656,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 15,
+          numCertain: 0,
           numRemaining: 15,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -653,6 +671,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 7,
+          numCertain: 0,
           numRemaining: 15,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -669,8 +688,9 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 3,
+          numCertain: 1,
           numRemaining: 3,
-          color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
+          color: LogicCalculation.LOCATION_COLORS.CERTAIN_AVAILABLE_LOCATION,
         });
       });
 
@@ -683,6 +703,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 1,
+          numCertain: 0,
           numRemaining: 1,
           color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
         });
@@ -697,6 +718,7 @@ describe('LogicCalculation', () => {
 
         expect(locationCounts).toEqual({
           numAvailable: 0,
+          numCertain: 0,
           numRemaining: 0,
           color: LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION,
         });
@@ -712,6 +734,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 3,
+            numCertain: 0,
             numRemaining: 3,
             color: LogicCalculation.LOCATION_COLORS.NON_PROGRESS_LOCATION,
           });
@@ -726,6 +749,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 38,
+            numCertain: 0,
             numRemaining: 38,
             color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
           });
@@ -750,6 +774,7 @@ describe('LogicCalculation', () => {
 
           expect(locationCounts).toEqual({
             numAvailable: 13,
+            numCertain: 0,
             numRemaining: 13,
             color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
           });
@@ -821,6 +846,21 @@ describe('LogicCalculation', () => {
         {
           location: 'Ghost Ship',
           color: LogicCalculation.LOCATION_COLORS.UNAVAILABLE_LOCATION,
+        },
+      ]);
+    });
+
+    test('returns the correct locations for Western Fairy Island', () => {
+      const locationsList = logic.locationsList('Western Fairy Island', {
+        isDungeon: false,
+        onlyProgressLocations: true,
+        disableLogic: false,
+      });
+
+      expect(locationsList).toEqual([
+        {
+          location: 'Great Fairy',
+          color: LogicCalculation.LOCATION_COLORS.CERTAIN_UNAVAILABLE_LOCATION,
         },
       ]);
     });
@@ -1024,7 +1064,7 @@ describe('LogicCalculation', () => {
           },
           {
             location: 'Great Fairy',
-            color: LogicCalculation.LOCATION_COLORS.AVAILABLE_LOCATION,
+            color: LogicCalculation.LOCATION_COLORS.CERTAIN_AVAILABLE_LOCATION,
           },
         ]);
       });

@@ -279,14 +279,15 @@ describe('Settings', () => {
         flags: [Settings.FLAGS.TINGLE_CHEST],
         options: {
           [Permalink.OPTIONS.RANDOMIZE_ENTRANCES]: true,
+          [Permalink.OPTIONS.PROGRESSION_TINGLE_CHESTS]: true,
         },
       });
     });
 
-    test('update options', () => {
+    test('update options and flags', () => {
       const { flags, options } = Settings.readAll();
       expect(flags).toEqual(['Tingle Chest']);
-      expect(options).toEqual({ randomize_entrances: true });
+      expect(options).toEqual({ progression_tingle_chests: true, randomize_entrances: true });
 
       Settings.updateOptions({
         progression_triforce_charts: true,
@@ -305,6 +306,42 @@ describe('Settings', () => {
         randomize_charts: 'Enabled',
         randomize_entrances: 'Disabled',
       });
+    });
+  });
+
+  describe('updateCertainSettings', () => {
+    beforeEach(() => {
+      Settings.initializeRaw({
+        certainSettings: { [Permalink.OPTIONS.PROGRESSION_TINGLE_CHESTS]: true },
+        certainSettingsFlags: [Settings.FLAGS.TINGLE_CHEST],
+      });
+    });
+
+    test('update certain settings and certain flags', () => {
+      const { certainSettings, certainSettingsFlags } = Settings.readAll();
+      expect(certainSettings).toEqual({ progression_tingle_chests: true });
+      expect(certainSettingsFlags).toEqual(['Tingle Chest']);
+
+      Settings.updateCertainSettings({
+        progression_tingle_chests: false,
+        progression_combat_secret_caves: true,
+        progression_minigames: true,
+      });
+
+      const {
+        certainSettings: newCertainSettings,
+        certainSettingsFlags: newCertainSettingsFlags,
+      } = Settings.readAll();
+
+      expect(newCertainSettings).toEqual({
+        progression_combat_secret_caves: true,
+        progression_minigames: true,
+        progression_tingle_chests: false,
+      });
+      expect(newCertainSettingsFlags).toEqual([
+        'Combat Secret Cave',
+        'Minigame',
+      ]);
     });
   });
 });

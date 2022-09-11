@@ -241,6 +241,25 @@ class LogicHelper {
     return null;
   }
 
+  static isCertainLocationType(generalLocation, detailedLocation) {
+    const locationTypes = Locations.getLocation(
+      generalLocation,
+      detailedLocation,
+      Locations.KEYS.TYPES,
+    );
+
+    if (!locationTypes) {
+      // the Defeat Ganondorf location does not have any types
+      return true;
+    }
+
+    const locationTypesList = _.split(locationTypes, ', ');
+    return _.every(
+      locationTypesList,
+      (flag) => Settings.isCertainFlagActive(flag),
+    );
+  }
+
   static isProgressLocation(generalLocation, detailedLocation) {
     const locationTypes = Locations.getLocation(
       generalLocation,
@@ -490,6 +509,12 @@ class LogicHelper {
     const additionalLocations = _.get(RACE_MODE_BANNED_LOCATIONS, dungeonName, []);
 
     return _.concat(dungeonLocations, additionalLocations);
+  }
+
+  static isLockedStartingItem(itemName) {
+    return itemName === LogicHelper.ITEMS.WINDS_REQUIEM
+    || itemName === LogicHelper.ITEMS.BOATS_SAIL
+    || itemName === LogicHelper.ITEMS.WIND_WAKER;
   }
 
   static _prettyNameOverride(itemName, itemCount = 1) {
