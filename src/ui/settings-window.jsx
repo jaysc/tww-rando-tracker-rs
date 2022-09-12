@@ -244,6 +244,21 @@ class SettingsWindow extends React.PureComponent {
     );
   }
 
+  convenienceTweaksTable() {
+    return (
+      <OptionsTable
+        title="Convenience Tweaks"
+        numColumns={2}
+        options={[
+          this.toggleInput({
+            labelText: 'Skip Boss Rematches',
+            optionName: Permalink.OPTIONS.SKIP_REMATCH_BOSSES,
+          }),
+        ]}
+      />
+    );
+  }
+
   async applySettings() {
     const { certainSettings, options } = this.state;
     const { updateLogic, toggleSettingsWindow } = this.props;
@@ -275,6 +290,7 @@ class SettingsWindow extends React.PureComponent {
           <div className="settings">
             {this.progressItemLocationsTable()}
             {this.additionalRandomizationOptionsTable()}
+            {this.convenienceTweaksTable()}
           </div>
           <div className="settings-apply">
             <button
