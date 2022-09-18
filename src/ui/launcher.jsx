@@ -97,6 +97,7 @@ export default class Launcher extends React.PureComponent {
       options,
       permalink,
       disableAll: true,
+      gameId: '',
     };
 
     this.launchNewTracker = this.launchNewTracker.bind(this);
@@ -104,6 +105,8 @@ export default class Launcher extends React.PureComponent {
     this.loadFromSave = this.loadFromSave.bind(this);
     this.setOptionValue = this.setOptionValue.bind(this);
     this.invertSettingsFunc = this.invertSettingsFunc.bind(this);
+    this.launchOnline = this.launchOnline.bind(this);
+    this.loadFromFileLaunchOnline = this.loadFromFileLaunchOnline.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -195,6 +198,20 @@ export default class Launcher extends React.PureComponent {
         </button>
       </div>
     );
+  }
+
+  launchOnline() {
+    const encodedPermalink = this.encodedPermalink();
+    const { gameId } = this.state;
+
+    Launcher.openTrackerWindow(`/online/${encodedPermalink}/${gameId}`);
+  }
+
+  launchLoadFromFileLaunchOnline() {
+    const encodedPermalink = this.encodedPermalink();
+    const { gameId } = this.state;
+
+    Launcher.openTrackerWindow(`/load/online/${encodedPermalink}/${gameId}`);
   }
 
   permalinkContainer() {
@@ -416,6 +433,53 @@ export default class Launcher extends React.PureComponent {
     );
   }
 
+  async loadFromFileLaunchOnline() {
+    await Storage.loadFileAndStore();
+
+    this.launchLoadFromFileLaunchOnline();
+  }
+
+  gameIdContainer() {
+    const { gameId } = this.state;
+
+    return (
+      <>
+        <div className="permalink-container">
+          <div className="permalink-label">GameId:</div>
+          <div className="permalink-input">
+            <input
+              placeholder="GameId"
+              className="permalink"
+              onChange={(event) => {
+                event.stopPropagation();
+                this.setState({ gameId: event.target.value });
+              }}
+              value={gameId}
+            />
+          </div>
+        </div>
+        <div className="launcher-button-container">
+          <button
+            className="launcher-button"
+            type="button"
+            onClick={this.launchOnline}
+            disabled={!gameId}
+          >
+            Launch Online
+          </button>
+          <button
+            className="launcher-button"
+            type="button"
+            onClick={this.loadFromFileLaunchOnline}
+            disabled={!gameId}
+          >
+            Load File, Launch Online
+          </button>
+        </div>
+      </>
+    );
+  }
+
   render() {
     return (
       <div className="full-container">
@@ -435,6 +499,7 @@ export default class Launcher extends React.PureComponent {
             {this.convenienceTweaksTable()}
             {this.invertSettings()}
             {this.launchButtonContainer()}
+            {this.gameIdContainer()}
           </div>
           <div className="attribution">
             <span>Maintained by Jaysc/Colfra • Check out the </span>

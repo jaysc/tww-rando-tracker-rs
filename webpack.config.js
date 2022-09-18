@@ -1,5 +1,6 @@
 const path = require('path');
 
+const Dotenv = require('dotenv-webpack');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const sass = require('sass');
@@ -32,12 +33,13 @@ module.exports = (env, argv) => {
       port: 8080,
     },
     resolve: {
-      extensions: ['.webpack.js', '.js', '.jsx', '.json', '.png'],
+      extensions: ['.webpack.js', '.js', '.jsx', '.json', '.png', '.ts', '.tsx'],
     },
     output: {
       clean: true,
     },
     plugins: [
+      new Dotenv({ systemvars: !!isProduction }),
       new FaviconsWebpackPlugin(faviconsWebpackPluginSettings),
       new HtmlWebpackPlugin({
         template: './src/index.html',
@@ -45,36 +47,49 @@ module.exports = (env, argv) => {
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
       }),
-      ...(isProduction ? [new WorkboxPlugin.GenerateSW({
-        clientsClaim: true,
-        skipWaiting: true,
-        runtimeCaching: [{
-          urlPattern: /https:\/\/raw\.githubusercontent\.com/,
-          handler: 'StaleWhileRevalidate',
-        }],
-      })] : []),
+      ...(isProduction
+        ? [
+          new WorkboxPlugin.GenerateSW({
+            clientsClaim: true,
+            skipWaiting: true,
+            runtimeCaching: [
+              {
+                urlPattern: /https:\/\/raw\.githubusercontent\.com/,
+                handler: 'StaleWhileRevalidate',
+              },
+            ],
+          }),
+        ]
+        : []),
     ],
     module: {
       rules: [
         {
           test: /\.jsx?$/,
-          use: [
-            'babel-loader',
-          ],
+          use: ['babel-loader'],
           exclude: '/node_modules',
         },
         {
           test: /\.(s*)css$/,
-          use: ['style-loader', 'css-loader', {
-            loader: 'sass-loader',
-            options: {
-              implementation: sass,
+          use: [
+            'style-loader',
+            'css-loader',
+            {
+              loader: 'sass-loader',
+              options: {
+                implementation: sass,
+              },
             },
-          }],
+          ],
         },
         {
           test: /\.png$/,
           type: 'asset/inline',
+        },
+        {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
         },
       ],
     },

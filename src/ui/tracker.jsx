@@ -5,6 +5,8 @@ import { Oval } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 
 import ChangedStartingItems from '../services/changed-starting-items';
+// eslint-disable-next-line import/no-unresolved, import/extensions
+import Database, { Mode, SaveDataType } from '../services/database';
 import LogicHelper from '../services/logic-helper';
 import Settings from '../services/settings';
 import Spheres from '../services/spheres';
@@ -81,7 +83,7 @@ class Tracker extends React.PureComponent {
       this.updatePreferences(preferences);
     }
 
-    const { loadProgress, permalink } = this.props;
+    const { loadProgress, permalink, gameId } = this.props;
 
     let initialData;
 
@@ -103,7 +105,18 @@ class Tracker extends React.PureComponent {
       }
     }
 
-    if (_.isNil(initialData)) {
+    let database;
+    if (gameId) {
+      database = new Database({
+        permaId: permalink,
+        gameId,
+        databaseInitialLoad: this.databaseInitialLoad.bind(this),
+        databaseUpdate: this.databaseUpdate.bind(this),
+        initialData,
+      });
+    }
+
+    if (_.isNil(initialData) || gameId) {
       try {
         const decodedPermalink = decodeURIComponent(permalink);
 
@@ -123,16 +136,89 @@ class Tracker extends React.PureComponent {
     } = initialData;
 
     this.setState({
+      database,
       isLoading: false,
       logic,
       saveData,
       spheres,
       trackerState,
     });
+
+    if (database) {
+      database.connect();
+    }
+  }
+
+  databaseInitialLoad() {
+    const { trackerState, database } = this.state;
+    let newTrackerState = trackerState._clone({
+      items: true,
+      locationsChecked: true,
+    });
+
+    const destructId = database.mode === Mode.ITEMSYNC ? database.roomId : database.userId;
+
+    _.forEach(database.state.items, (itemData, itemName) => {
+      const { count, generalLocation, detailedLocation } = itemData[destructId];
+
+      _.set(newTrackerState.items, itemName, count ?? 0);
+      if (generalLocation && detailedLocation) {
+        newTrackerState = newTrackerState.setItemForLocation(
+          itemName,
+          generalLocation,
+          detailedLocation,
+        );
+      }
+    });
+
+    _.forEach(database.state.locations, (locationData, location) => {
+      const [generalLocation, detailedLocation] = location.split('#');
+      const { isChecked } = locationData[destructId];
+
+      _.set(
+        newTrackerState.locationsChecked,
+        [generalLocation, detailedLocation],
+        isChecked ?? false,
+      );
+    });
+
+    this.updateTrackerState(newTrackerState);
+  }
+
+  databaseUpdate(data) {
+    const { trackerState } = this.state;
+
+    let newTrackerState;
+    if (data.type === SaveDataType.ITEM) {
+      newTrackerState = trackerState._clone({ items: true });
+      const {
+        itemName, count, generalLocation, detailedLocation,
+      } = data;
+
+      _.set(newTrackerState.items, itemName, count ?? 0);
+      if (generalLocation && detailedLocation) {
+        newTrackerState = newTrackerState.setItemForLocation(
+          itemName,
+          generalLocation,
+          detailedLocation,
+        );
+      }
+    } else if (data.type === SaveDataType.LOCATION) {
+      newTrackerState = trackerState._clone({ locationsChecked: true });
+
+      _.set(
+        newTrackerState.locationsChecked,
+        [data.generalLocation, data.detailedLocation],
+        data.isChecked ?? false,
+      );
+    }
+
+    this.updateTrackerState(newTrackerState);
   }
 
   incrementItem(itemName) {
     const {
+      database,
       lastLocation,
       trackerState,
     } = this.state;
@@ -153,6 +239,16 @@ class Tracker extends React.PureComponent {
     }
 
     this.updateTrackerState(newTrackerState);
+
+    if (database) {
+      const { generalLocation, detailedLocation } = lastLocation ?? {};
+
+      database.setItem(itemName, {
+        count: newTrackerState.getItemValue(itemName),
+        generalLocation,
+        detailedLocation,
+      });
+    }
   }
 
   incrementStartingItem(itemName) {
@@ -165,11 +261,17 @@ class Tracker extends React.PureComponent {
   }
 
   decrementItem(itemName) {
-    const { trackerState } = this.state;
+    const { database, trackerState } = this.state;
 
     const newTrackerState = trackerState.decrementItem(itemName);
 
     this.updateTrackerState(newTrackerState);
+
+    if (database) {
+      database.setItem(itemName, {
+        count: newTrackerState.getItemValue(itemName),
+      });
+    }
   }
 
   decrementStartingItem(itemName) {
@@ -182,7 +284,7 @@ class Tracker extends React.PureComponent {
   }
 
   toggleLocationChecked(generalLocation, detailedLocation) {
-    const { trackerState } = this.state;
+    const { database, trackerState } = this.state;
 
     let newTrackerState = trackerState.toggleLocationChecked(generalLocation, detailedLocation);
 
@@ -193,10 +295,18 @@ class Tracker extends React.PureComponent {
           detailedLocation,
         },
       });
+
+      if (database) {
+        database.setLocation(generalLocation, detailedLocation, true);
+      }
     } else {
       this.setState({ lastLocation: null });
 
       newTrackerState = newTrackerState.unsetItemForLocation(generalLocation, detailedLocation);
+
+      if (database) {
+        database.setLocation(generalLocation, detailedLocation, false);
+      }
     }
 
     this.updateTrackerState(newTrackerState);
@@ -532,6 +642,7 @@ class Tracker extends React.PureComponent {
 Tracker.propTypes = {
   loadProgress: PropTypes.bool.isRequired,
   permalink: PropTypes.string.isRequired,
+  gameId: PropTypes.string.isRequired,
 };
 
 export default Tracker;
