@@ -627,6 +627,10 @@ button:hover:enabled {
   text-decoration: underline;
 }
 
+.sea-sector:nth-last-child(-n+7) .chests-counter.certain-available-location {
+  text-decoration-thickness: 2px;
+}
+
 .certain-unavailable-location {
   @extend .unavailable-location;
   text-decoration: underline;
