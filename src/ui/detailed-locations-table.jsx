@@ -116,16 +116,18 @@ class DetailedLocationsTable extends React.PureComponent {
       Locations.KEYS.TYPES,
     );
 
+    const locationSettings = LogicHelper.locationTypeToSetting(locationTypes);
+
     let locationContent;
     if (disableLogic || isLocationChecked) {
       let itemTooltip = null;
       if (trackSpheres) {
-        itemTooltip = this.itemTooltip(openedLocation, location, locationTypes);
-      } else if (locationTypes) {
+        itemTooltip = this.itemTooltip(openedLocation, location, locationSettings);
+      } else if (locationSettings) {
         itemTooltip = (
           <div className="tooltip">
             <div className="tooltip-title">
-              {`Settings: ${locationTypes}`}
+              {`Settings: ${locationSettings}`}
             </div>
           </div>
         );
@@ -137,7 +139,11 @@ class DetailedLocationsTable extends React.PureComponent {
         </Tooltip>
       );
     } else {
-      const requirementsTooltip = this.requirementsTooltip(openedLocation, location, locationTypes);
+      const requirementsTooltip = this.requirementsTooltip(
+        openedLocation,
+        location,
+        locationSettings,
+      );
 
       locationContent = (
         <Tooltip tooltipContent={requirementsTooltip}>

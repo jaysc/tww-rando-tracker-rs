@@ -101,6 +101,32 @@ class LogicHelper {
     _.keys(KEYS),
   );
 
+  static SETTINGS_FOR_FLAGS = {
+    [Settings.FLAGS.DUNGEON]: 'Dungeons',
+    [Settings.FLAGS.GREAT_FAIRY]: 'Great Fairies',
+    [Settings.FLAGS.PUZZLE_SECRET_CAVE]: 'Puzzle Secret Caves',
+    [Settings.FLAGS.COMBAT_SECRET_CAVE]: 'Combat Secret Caves',
+    [Settings.FLAGS.SHORT_SIDEQUEST]: 'Short Sidequests',
+    [Settings.FLAGS.LONG_SIDEQUEST]: 'Long Sidequests',
+    [Settings.FLAGS.SPOILS_TRADING]: 'Spoils Trading',
+    [Settings.FLAGS.MINIGAME]: 'Minigames',
+    [Settings.FLAGS.FREE_GIFT]: 'Free Gifts',
+    [Settings.FLAGS.MAIL]: 'Mail',
+    [Settings.FLAGS.PLATFORM]: 'Lookout Platforms and Rafts',
+    [Settings.FLAGS.RAFT]: 'Lookout Platforms and Rafts',
+    [Settings.FLAGS.SUBMARINE]: 'Submarines',
+    [Settings.FLAGS.EYE_REEF_CHEST]: 'Eye Reef Chests',
+    [Settings.FLAGS.BIG_OCTO]: 'Big Octos and Gunboats',
+    [Settings.FLAGS.GUNBOAT]: 'Big Octos and Gunboats',
+    [Settings.FLAGS.EXPENSIVE_PURCHASE]: 'Expensive Purchases',
+    [Settings.FLAGS.OTHER_CHEST]: 'Miscellaneous',
+    [Settings.FLAGS.MISC]: 'Miscellaneous',
+    [Settings.FLAGS.TINGLE_CHEST]: 'Tingle Chests',
+    [Settings.FLAGS.BATTLESQUID]: 'Battlesquid Minigame',
+    [Settings.FLAGS.SAVAGE_LABYRINTH]: 'Savage Labyrinth',
+    [Settings.FLAGS.ISLAND_PUZZLE]: 'Island Puzzles',
+  };
+
   static startingItemCount(item) {
     return _.get(this.startingItems, item, 0);
   }
@@ -277,6 +303,22 @@ class LogicHelper {
       locationTypesList,
       (flag) => Settings.isFlagActive(flag),
     );
+  }
+
+  static locationTypeToSetting(locationType) {
+    const types = locationType.split(',');
+    const settings = [];
+    types.forEach((type) => {
+      const setting = _.get(this.SETTINGS_FOR_FLAGS, type, type);
+
+      if (settings.includes(setting)) {
+        return;
+      }
+
+      settings.push(setting);
+    });
+
+    return settings.join(', ');
   }
 
   static filterDetailedLocations(generalLocation, { isDungeon, onlyProgressLocations }) {
