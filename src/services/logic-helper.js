@@ -306,7 +306,7 @@ class LogicHelper {
   }
 
   static locationTypeToSetting(locationType) {
-    const types = locationType.split(',');
+    const types = locationType.split(',').map((type) => type.trim());
     const settings = [];
     types.forEach((type) => {
       const setting = _.get(this.SETTINGS_FOR_FLAGS, type, type);
