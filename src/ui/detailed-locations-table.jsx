@@ -42,6 +42,17 @@ class DetailedLocationsTable extends React.PureComponent {
       prettyItemName = LogicHelper.prettyNameForItem(itemForLocation, null);
     }
 
+    let chartLeadsTo;
+    if (LogicHelper.isRandomizedChart(itemForLocation)) {
+      const mappedIslandForChart = trackerState.getIslandFromChartMapping(itemForLocation);
+      chartLeadsTo = !_.isNil(mappedIslandForChart) ? (
+        <>
+          <div className="tooltip-title">Chart Leads To</div>
+          <div>{mappedIslandForChart}</div>
+        </>
+      ) : null;
+    }
+
     return (
       <div className="tooltip">
         {locationTypes && (
@@ -55,6 +66,7 @@ class DetailedLocationsTable extends React.PureComponent {
           <div>{prettyItemName}</div>
         </>
         )}
+        {chartLeadsTo}
       </div>
     );
   }

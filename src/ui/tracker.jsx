@@ -27,6 +27,7 @@ class Tracker extends React.PureComponent {
     super(props);
 
     this.state = {
+      chartListOpen: false,
       changedStartingItems: ChangedStartingItems.initialize(),
       colorPickerOpen: false,
       colors: {
@@ -40,6 +41,7 @@ class Tracker extends React.PureComponent {
       isLoading: true,
       lastLocation: null,
       onlyProgressLocations: true,
+      openedChartForIsland: null,
       openedExit: null,
       openedLocation: null,
       openedLocationIsDungeon: null,
@@ -56,6 +58,7 @@ class Tracker extends React.PureComponent {
     this.decrementStartingItem = this.decrementStartingItem.bind(this);
     this.incrementItem = this.incrementItem.bind(this);
     this.incrementStartingItem = this.incrementStartingItem.bind(this);
+    this.toggleChartList = this.toggleChartList.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.toggleDisableLogic = this.toggleDisableLogic.bind(this);
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
@@ -64,11 +67,14 @@ class Tracker extends React.PureComponent {
     this.toggleSettingsWindow = this.toggleSettingsWindow.bind(this);
     this.toggleStartingItemSelection = this.toggleStartingItemSelection.bind(this);
     this.toggleTrackSpheres = this.toggleTrackSpheres.bind(this);
+    this.unsetChartMapping = this.unsetChartMapping.bind(this);
     this.unsetExit = this.unsetExit.bind(this);
     this.unsetLastLocation = this.unsetLastLocation.bind(this);
+    this.updateChartMapping = this.updateChartMapping.bind(this);
     this.updateColors = this.updateColors.bind(this);
     this.updateEntranceForExit = this.updateEntranceForExit.bind(this);
     this.updateLogic = this.updateLogic.bind(this);
+    this.updateOpenedChartForIsland = this.updateOpenedChartForIsland.bind(this);
     this.updateOpenedExit = this.updateOpenedExit.bind(this);
     this.updateOpenedLocation = this.updateOpenedLocation.bind(this);
   }
@@ -225,7 +231,6 @@ class Tracker extends React.PureComponent {
     } = TrackerController.refreshState(newTrackerState);
 
     Storage.saveToStorage(saveData);
-
     this.setState({
       logic,
       saveData,
@@ -242,7 +247,9 @@ class Tracker extends React.PureComponent {
 
   clearOpenedMenus() {
     this.setState({
+      chartListOpen: false,
       entrancesListOpen: false,
+      openedChartForIsland: null,
       openedExit: null,
       openedLocation: null,
       openedLocationIsDungeon: null,
@@ -251,7 +258,9 @@ class Tracker extends React.PureComponent {
 
   updateOpenedExit(dungeonOrCaveName) {
     this.setState({
+      chartListOpen: false,
       entrancesListOpen: false,
+      openedChartForIsland: null,
       openedExit: dungeonOrCaveName,
       openedLocation: null,
       openedLocationIsDungeon: null,
@@ -283,10 +292,88 @@ class Tracker extends React.PureComponent {
 
   updateOpenedLocation({ locationName, isDungeon }) {
     this.setState({
+      chartListOpen: false,
       entrancesListOpen: false,
+      openedChartForIsland: null,
       openedExit: null,
       openedLocation: locationName,
       openedLocationIsDungeon: isDungeon,
+    });
+  }
+
+  updateChartMapping(chart, chartForIsland) {
+    const { lastLocation, trackerState } = this.state;
+
+    let newTrackerState = trackerState
+      .setChartMapping(chart, chartForIsland);
+
+    if (newTrackerState.getItemValue(chart) === 0) {
+      newTrackerState = newTrackerState.incrementItem(chart);
+
+      if (!_.isNil(lastLocation)) {
+        const {
+          generalLocation,
+          detailedLocation,
+        } = lastLocation;
+
+        newTrackerState = newTrackerState.setItemForLocation(
+          chart,
+          generalLocation,
+          detailedLocation,
+        );
+      }
+    }
+
+    if (newTrackerState.getItemValue(chartForIsland) === 0) {
+      newTrackerState = newTrackerState.incrementItem(chartForIsland);
+    }
+
+    this.updateTrackerState(newTrackerState);
+    this.clearOpenedMenus();
+  }
+
+  // Unset via sector should only remove mapping.
+  // Unset via chart-list should remove both mapping and decrement chart.
+  unsetChartMapping(chartForIsland, decrementChart) {
+    const { trackerState } = this.state;
+    let newTrackerState = trackerState;
+
+    if (decrementChart) {
+      const island = LogicHelper.islandFromChartForIsland(chartForIsland);
+      const chart = trackerState.getChartFromChartMapping(island);
+
+      newTrackerState = newTrackerState
+        .decrementItem(chart);
+    }
+
+    newTrackerState = newTrackerState
+      .decrementItem(chartForIsland)
+      .unsetChartMapping(chartForIsland);
+
+    this.updateTrackerState(newTrackerState);
+  }
+
+  updateOpenedChartForIsland(openedChartForIsland) {
+    this.setState({
+      chartListOpen: false,
+      entrancesListOpen: false,
+      openedChartForIsland,
+      openedExit: null,
+      openedLocation: null,
+      openedLocationIsDungeon: null,
+    });
+  }
+
+  toggleChartList() {
+    const { chartListOpen } = this.state;
+
+    this.setState({
+      chartListOpen: !chartListOpen,
+      entrancesListOpen: false,
+      openedChartForIsland: null,
+      openedExit: null,
+      openedLocation: null,
+      openedLocationIsDungeon: null,
     });
   }
 
@@ -295,6 +382,7 @@ class Tracker extends React.PureComponent {
 
     this.setState({
       entrancesListOpen: !entrancesListOpen,
+      openedChartForIsland: null,
       openedExit: null,
       openedLocation: null,
       openedLocationIsDungeon: null,
@@ -395,6 +483,7 @@ class Tracker extends React.PureComponent {
   render() {
     const {
       changedStartingItems,
+      chartListOpen,
       colorPickerOpen,
       colors,
       disableLogic,
@@ -403,6 +492,7 @@ class Tracker extends React.PureComponent {
       lastLocation,
       logic,
       onlyProgressLocations,
+      openedChartForIsland,
       openedExit,
       openedLocation,
       openedLocationIsDungeon,
@@ -448,6 +538,7 @@ class Tracker extends React.PureComponent {
             />
             <LocationsTable
               backgroundColor={extraLocationsBackground}
+              chartListOpen={chartListOpen}
               clearOpenedMenus={this.clearOpenedMenus}
               clearRaceModeBannedLocations={this.clearRaceModeBannedLocations}
               decrementItem={this.decrementItem}
@@ -456,6 +547,7 @@ class Tracker extends React.PureComponent {
               incrementItem={this.incrementItem}
               logic={logic}
               onlyProgressLocations={onlyProgressLocations}
+              openedChartForIsland={openedChartForIsland}
               openedExit={openedExit}
               openedLocation={openedLocation}
               openedLocationIsDungeon={openedLocationIsDungeon}
@@ -463,6 +555,9 @@ class Tracker extends React.PureComponent {
               toggleLocationChecked={this.toggleLocationChecked}
               trackerState={trackerState}
               trackSpheres={trackSpheres}
+              updateChartMapping={this.updateChartMapping}
+              updateOpenedChartForIsland={this.updateOpenedChartForIsland}
+              unsetChartMapping={this.unsetChartMapping}
               unsetExit={this.unsetExit}
               updateEntranceForExit={this.updateEntranceForExit}
               updateOpenedExit={this.updateOpenedExit}
@@ -502,12 +597,14 @@ class Tracker extends React.PureComponent {
           <Buttons
             colorPickerOpen={colorPickerOpen}
             disableLogic={disableLogic}
+            chartListOpen={chartListOpen}
             entrancesListOpen={entrancesListOpen}
             onlyProgressLocations={onlyProgressLocations}
             saveData={saveData}
             settingsWindowOpen={settingsWindowOpen}
             startingItemSelection={startingItemSelection}
             trackSpheres={trackSpheres}
+            toggleChartList={this.toggleChartList}
             toggleColorPicker={this.toggleColorPicker}
             toggleDisableLogic={this.toggleDisableLogic}
             toggleEntrancesList={this.toggleEntrancesList}
