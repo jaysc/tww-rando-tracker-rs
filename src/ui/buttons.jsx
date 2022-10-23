@@ -45,7 +45,7 @@ class Buttons extends React.PureComponent {
       ? 'Close Entrances'
       : 'View Entrances';
     const chartListText = chartListOpen
-      ? 'Clost Chart List'
+      ? 'Close Chart List'
       : 'View Charts';
     const settingsWindowText = settingsWindowOpen
       ? 'Close Settings Window'
