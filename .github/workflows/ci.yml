@@ -14,6 +14,11 @@ jobs:
       - name: Checkout commit
         uses: actions/checkout@v3
 
+      - name: Add websocket serevr
+        run: echo "WEBSOCKET_SERVER=$WEBSOCKET_SERVER" > .env
+        env:
+          WEBSOCKET_SERVER: ${{ secrets.WEBSOCKET_SERVER }}
+
       - name: Install Node
         uses: actions/setup-node@v3.5.1
         with:

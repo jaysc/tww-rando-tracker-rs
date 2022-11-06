@@ -13,10 +13,10 @@ import Tracker from './tracker';
 import '../css/main.scss';
 
 function RenderTracker({ loadProgress }) {
-  const { permalink } = useParams();
+  const { gameId, mode, permalink } = useParams();
 
   return (
-    <Tracker permalink={permalink} loadProgress={loadProgress} />
+    <Tracker mode={mode} permalink={permalink} loadProgress={loadProgress} gameId={gameId} />
   );
 }
 
@@ -42,6 +42,11 @@ export default function App() {
           exact
           path="/tracker/load/:permalink"
           element={<RenderTracker loadProgress />}
+        />
+        <Route
+          exact
+          path="/tracker/online/:mode/:permalink/:gameId"
+          element={<RenderTracker loadProgress={false} />}
         />
       </Routes>
     </HashRouter>

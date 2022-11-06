@@ -97,6 +97,7 @@ export default class Launcher extends React.PureComponent {
       options,
       permalink,
       disableAll: true,
+      gameId: '',
     };
 
     this.launchNewTracker = this.launchNewTracker.bind(this);
@@ -104,6 +105,7 @@ export default class Launcher extends React.PureComponent {
     this.loadFromSave = this.loadFromSave.bind(this);
     this.setOptionValue = this.setOptionValue.bind(this);
     this.invertSettingsFunc = this.invertSettingsFunc.bind(this);
+    this.launchOnline = this.launchOnline.bind(this);
   }
 
   getOptionValue(optionName) {
@@ -370,6 +372,13 @@ export default class Launcher extends React.PureComponent {
     Launcher.openTrackerWindow(`/new/${encodedPermalink}`);
   }
 
+  launchOnline(mode) {
+    const encodedPermalink = this.encodedPermalink();
+    const { gameId } = this.state;
+
+    Launcher.openTrackerWindow(`/online/${mode}/${encodedPermalink}/${gameId}`);
+  }
+
   loadFromSave() {
     const encodedPermalink = this.encodedPermalink();
 
@@ -388,31 +397,44 @@ export default class Launcher extends React.PureComponent {
     this.loadFromSave();
   }
 
-  launchButtonContainer() {
+  gameIdContainer() {
+    const { gameId } = this.state;
+
     return (
-      <div className="launcher-button-container">
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.launchNewTracker}
-        >
-          Launch New Tracker
-        </button>
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.loadFromSave}
-        >
-          Load From Autosave
-        </button>
-        <button
-          className="launcher-button"
-          type="button"
-          onClick={this.loadFromFile}
-        >
-          Load From File
-        </button>
-      </div>
+      <>
+        <div className="permalink-container">
+          <div className="permalink-label">Room Name:</div>
+          <div className="permalink-input">
+            <input
+              placeholder="Room Name"
+              className="permalink"
+              onChange={(event) => {
+                event.stopPropagation();
+                this.setState({ gameId: event.target.value });
+              }}
+              value={gameId}
+            />
+          </div>
+        </div>
+        <div className="launcher-button-container">
+          <button
+            className="launcher-button"
+            type="button"
+            onClick={() => this.launchOnline('itemsync')}
+            disabled={!gameId}
+          >
+            Launch Itemsync
+          </button>
+          <button
+            className="launcher-button"
+            type="button"
+            onClick={() => this.launchOnline('coop')}
+            disabled={!gameId}
+          >
+            Launch Coop
+          </button>
+        </div>
+      </>
     );
   }
 
@@ -434,7 +456,7 @@ export default class Launcher extends React.PureComponent {
             {this.additionalRandomizationOptionsTable()}
             {this.convenienceTweaksTable()}
             {this.invertSettings()}
-            {this.launchButtonContainer()}
+            {this.gameIdContainer()}
           </div>
           <div className="attribution">
             <span>Maintained by Jaysc/Colfra • Check out the </span>

@@ -1,4 +1,4 @@
-# TWW Randomizer Tracker RS
+# TWW Randomizer Tracker RS Coop
 
 This tracker is based on source code written by [wooferzfg](https://github.com/wooferzfg).
 

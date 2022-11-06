@@ -5,6 +5,8 @@ import { Oval } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toastify';
 
 import ChangedStartingItems from '../services/changed-starting-items';
+import DatabaseLogic, { SaveDataType } from '../services/database-logic.ts';
+import DatabaseState from '../services/database-state.ts';
 import LogicHelper from '../services/logic-helper';
 import Settings from '../services/settings';
 import Spheres from '../services/spheres';
@@ -36,6 +38,7 @@ class Tracker extends React.PureComponent {
         sphereTrackingBackground: null,
         statisticsBackground: null,
       },
+      databaseConnected: false,
       disableLogic: false,
       entrancesListOpen: false,
       isLoading: true,
@@ -47,7 +50,7 @@ class Tracker extends React.PureComponent {
       openedLocationIsDungeon: null,
       settingsWindowOpen: false,
       startingItemSelection: false,
-      trackSpheres: false,
+      trackSpheres: true,
     };
 
     this.initialize();
@@ -77,6 +80,10 @@ class Tracker extends React.PureComponent {
     this.updateOpenedChartForIsland = this.updateOpenedChartForIsland.bind(this);
     this.updateOpenedExit = this.updateOpenedExit.bind(this);
     this.updateOpenedLocation = this.updateOpenedLocation.bind(this);
+
+    this.databaseConnectedStatusChanged = this.databaseConnectedStatusChanged.bind(this);
+    this.databaseInitialLoad = this.databaseInitialLoad.bind(this);
+    this.databaseUpdate = this.databaseUpdate.bind(this);
   }
 
   async initialize() {
@@ -87,7 +94,9 @@ class Tracker extends React.PureComponent {
       this.updatePreferences(preferences);
     }
 
-    const { loadProgress, permalink } = this.props;
+    const {
+      gameId, loadProgress, mode, permalink,
+    } = this.props;
 
     let initialData;
 
@@ -109,7 +118,20 @@ class Tracker extends React.PureComponent {
       }
     }
 
-    if (_.isNil(initialData)) {
+    let databaseLogic;
+    if (gameId) {
+      databaseLogic = new DatabaseLogic({
+        permaId: permalink,
+        gameId,
+        mode,
+        onConnectedStatusChanged: this.databaseConnectedStatusChanged.bind(this),
+        databaseInitialLoad: this.databaseInitialLoad.bind(this),
+        databaseUpdate: this.databaseUpdate.bind(this),
+        initialData,
+      });
+    }
+
+    if (_.isNil(initialData) || gameId) {
       try {
         const decodedPermalink = decodeURIComponent(permalink);
 
@@ -129,16 +151,195 @@ class Tracker extends React.PureComponent {
     } = initialData;
 
     this.setState({
+      databaseLogic,
+      databaseState: new DatabaseState(),
       isLoading: false,
       logic,
       saveData,
       spheres,
       trackerState,
     });
+
+    if (databaseLogic) {
+      databaseLogic.connect();
+    }
+  }
+
+  databaseConnectedStatusChanged(newConnectedState) {
+    this.setState({
+      databaseConnected: newConnectedState,
+    });
+  }
+
+  databaseInitialLoad(data) {
+    const { databaseLogic, databaseState, trackerState } = this.state;
+
+    const newDatabaseState = databaseState.setState(data, databaseLogic);
+
+    let newTrackerState = trackerState._clone({
+      entrances: true,
+      islandsForCharts: true,
+      items: true,
+      locationsChecked: true,
+      itemsForLocations: true,
+    });
+
+    _.forEach(newDatabaseState.entrances, (entranceData, exitName) => {
+      const { entranceName } = databaseLogic.getValue(entranceData);
+
+      if (entranceName) {
+        _.set(newTrackerState.entrances, exitName, entranceName);
+      }
+    });
+
+    _.forEach(newDatabaseState.islandsForCharts, (chartData, chart) => {
+      const { island } = databaseLogic.getValue(chartData);
+
+      if (island) {
+        _.set(newTrackerState.islandsForCharts, chart, island);
+      }
+    });
+
+    _.forEach(newDatabaseState.items, (itemData, itemName) => {
+      const { count } = databaseLogic.getValue(itemData);
+
+      if (count) {
+        _.set(newTrackerState.items, itemName, count ?? 0);
+      }
+    });
+
+    _.forEach(newDatabaseState.locationsChecked, (locationData, location) => {
+      const [generalLocation, detailedLocation] = location.split('#');
+      const { isChecked } = databaseLogic.getValue(locationData);
+      if (isChecked) {
+        _.set(
+          newTrackerState.locationsChecked,
+          [generalLocation, detailedLocation],
+          isChecked ?? false,
+        );
+      }
+    });
+
+    _.forEach(newDatabaseState.itemsForLocations, (locationData, location) => {
+      const [generalLocation, detailedLocation] = location.split('#');
+      const { itemName } = databaseLogic.getValue(locationData);
+      if (itemName) {
+        newTrackerState = newTrackerState.setItemForLocation(
+          itemName,
+          generalLocation,
+          detailedLocation,
+        );
+      }
+    });
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
+  }
+
+  databaseUpdate(data) {
+    const { databaseLogic, databaseState, trackerState } = this.state;
+
+    const newTrackerState = trackerState._clone({
+      entrances: true,
+      islandsForCharts: true,
+      items: true,
+      itemsForLocations: true,
+      locationsChecked: true,
+    });
+
+    let newDatabaseState = databaseState._clone({
+      entrances: true,
+      islandsForCharts: true,
+      items: true,
+      itemsForLocations: true,
+      locationsChecked: true,
+    });
+
+    if (data.type === SaveDataType.ENTRANCE) {
+      const { entranceName, exitName, userId } = data;
+      newDatabaseState = newDatabaseState.setEntrance(userId, {
+        entranceName,
+        exitName,
+      });
+
+      _.set(newTrackerState.entrances, exitName, entranceName);
+    }
+
+    if (data.type === SaveDataType.ISLANDS_FOR_CHARTS) {
+      const { chart, island, userId } = data;
+
+      newDatabaseState = newDatabaseState.setIslandsForCharts(userId, {
+        chart,
+        island,
+      });
+
+      _.set(newTrackerState.islandsForCharts, chart, island);
+    }
+
+    if (data.type === SaveDataType.ITEM) {
+      const {
+        count, detailedLocation, generalLocation, itemName, userId,
+      } = data;
+      newDatabaseState = newDatabaseState.setItem(userId, {
+        itemName, count,
+      });
+
+      if (generalLocation && detailedLocation) {
+        newDatabaseState = newDatabaseState.setItemsForLocations(
+          userId,
+          { itemName, generalLocation, detailedLocation },
+        );
+      }
+    }
+
+    if (data.type === SaveDataType.LOCATION) {
+      const {
+        detailedLocation, generalLocation, isChecked, userId,
+      } = data;
+      newDatabaseState = newDatabaseState.setLocation(
+        userId,
+        {
+          generalLocation, detailedLocation, isChecked,
+        },
+      );
+    }
+
+    if (data.userId === databaseLogic.userId || data.userId === databaseLogic.roomId) {
+      if (data.type === SaveDataType.ENTRANCE) {
+        const { entranceName, exitName } = data;
+
+        _.set(newTrackerState.entrances, exitName, entranceName);
+      } else if (data.type === SaveDataType.ISLANDS_FOR_CHARTS) {
+        const { chart, island } = data;
+
+        _.set(newTrackerState.islandsForCharts, chart, island);
+      } else if (data.type === SaveDataType.ITEM) {
+        const {
+          itemName, count, generalLocation, detailedLocation,
+        } = data;
+
+        _.set(newTrackerState.items, itemName, count ?? 0);
+        if (generalLocation && detailedLocation) {
+          _.set(newTrackerState.itemsForLocations, [generalLocation, detailedLocation], itemName);
+        }
+      } else if (data.type === SaveDataType.LOCATION) {
+        const {
+          generalLocation, detailedLocation, isChecked,
+        } = data;
+        _.set(
+          newTrackerState.locationsChecked,
+          [generalLocation, detailedLocation],
+          isChecked,
+        );
+      }
+    }
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   incrementItem(itemName) {
     const {
+      databaseLogic,
+      databaseState,
       lastLocation,
       trackerState,
     } = this.state;
@@ -158,7 +359,19 @@ class Tracker extends React.PureComponent {
       );
     }
 
-    this.updateTrackerState(newTrackerState);
+    let newDatabaseState = databaseState;
+    if (databaseLogic) {
+      const { generalLocation, detailedLocation } = lastLocation ?? {};
+
+      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        itemName,
+        count: newTrackerState.getItemValue(itemName),
+        generalLocation,
+        detailedLocation,
+      });
+    }
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   incrementStartingItem(itemName) {
@@ -171,11 +384,19 @@ class Tracker extends React.PureComponent {
   }
 
   decrementItem(itemName) {
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
 
     const newTrackerState = trackerState.decrementItem(itemName);
 
-    this.updateTrackerState(newTrackerState);
+    let newDatabaseState = databaseState;
+    if (databaseLogic) {
+      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        itemName,
+        count: newTrackerState.getItemValue(itemName),
+      });
+    }
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   decrementStartingItem(itemName) {
@@ -188,9 +409,10 @@ class Tracker extends React.PureComponent {
   }
 
   toggleLocationChecked(generalLocation, detailedLocation) {
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
 
     let newTrackerState = trackerState.toggleLocationChecked(generalLocation, detailedLocation);
+    let newDatabaseState = databaseState;
 
     if (newTrackerState.isLocationChecked(generalLocation, detailedLocation)) {
       this.setState({
@@ -199,13 +421,27 @@ class Tracker extends React.PureComponent {
           detailedLocation,
         },
       });
+
+      if (databaseLogic) {
+        newDatabaseState = databaseLogic.setLocation(
+          newDatabaseState,
+          { generalLocation, detailedLocation, isChecked: true },
+        );
+      }
     } else {
       this.setState({ lastLocation: null });
 
       newTrackerState = newTrackerState.unsetItemForLocation(generalLocation, detailedLocation);
+
+      if (databaseLogic) {
+        newDatabaseState = databaseLogic.setLocation(
+          newDatabaseState,
+          { generalLocation, detailedLocation, isChecked: false },
+        );
+      }
     }
 
-    this.updateTrackerState(newTrackerState);
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   clearRaceModeBannedLocations(dungeonName) {
@@ -222,7 +458,7 @@ class Tracker extends React.PureComponent {
     this.updateTrackerState(newTrackerState);
   }
 
-  updateTrackerState(newTrackerState) {
+  updateTrackerState(newTrackerState, newDatabaseState) {
     const {
       logic,
       saveData,
@@ -230,8 +466,14 @@ class Tracker extends React.PureComponent {
       trackerState,
     } = TrackerController.refreshState(newTrackerState);
 
+    const {
+      databaseState,
+    } = this.state;
+
     Storage.saveToStorage(saveData);
+
     this.setState({
+      databaseState: newDatabaseState ?? databaseState,
       logic,
       saveData,
       spheres,
@@ -268,25 +510,49 @@ class Tracker extends React.PureComponent {
   }
 
   unsetExit(dungeonOrCaveName) {
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
+    let newDatabaseState = databaseState;
 
     const entryName = LogicHelper.entryName(dungeonOrCaveName);
     const newTrackerState = trackerState
       .incrementItem(entryName)
       .unsetEntranceForExit(dungeonOrCaveName);
 
-    this.updateTrackerState(newTrackerState);
+    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+      itemName: entryName,
+      count: 0,
+      useRoomId: true,
+    });
+
+    newDatabaseState = databaseLogic.setEntrance(newDatabaseState, {
+      exitName: dungeonOrCaveName,
+    });
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   updateEntranceForExit(exitName, entranceName) {
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
+    let newDatabaseState = databaseState;
 
     const entryName = LogicHelper.entryName(exitName);
     const newTrackerState = trackerState
       .incrementItem(entryName)
       .setEntranceForExit(exitName, entranceName);
 
-    this.updateTrackerState(newTrackerState);
+    if (databaseLogic) {
+      newDatabaseState = databaseLogic.setEntrance(newDatabaseState, {
+        exitName,
+        entranceName,
+        useRoomId: true,
+      });
+      newDatabaseState = databaseLogic.setItem(
+        newDatabaseState,
+        { count: newTrackerState.getItemValue(entryName), itemName: entryName, useRoomId: true },
+      );
+    }
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
     this.clearOpenedMenus();
   }
 
@@ -302,7 +568,10 @@ class Tracker extends React.PureComponent {
   }
 
   updateChartMapping(chart, chartForIsland) {
-    const { lastLocation, trackerState } = this.state;
+    const {
+      databaseLogic, databaseState, lastLocation, trackerState,
+    } = this.state;
+    let newDatabaseState = databaseState;
 
     let newTrackerState = trackerState
       .setChartMapping(chart, chartForIsland);
@@ -328,15 +597,40 @@ class Tracker extends React.PureComponent {
       newTrackerState = newTrackerState.incrementItem(chartForIsland);
     }
 
-    this.updateTrackerState(newTrackerState);
+    if (databaseLogic) {
+      const island = LogicHelper.islandFromChartForIsland(chartForIsland);
+      const {
+        generalLocation,
+        detailedLocation,
+      } = lastLocation ?? {};
+
+      newDatabaseState = databaseLogic.setIslandsForCharts(newDatabaseState, {
+        chart,
+        island,
+        useRoomId: true,
+      });
+      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        count: newTrackerState.getItemValue(chart),
+        itemName: chart,
+        generalLocation,
+        detailedLocation,
+      });
+      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        count: newTrackerState.getItemValue(chartForIsland),
+        itemName: chartForIsland,
+      });
+    }
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
     this.clearOpenedMenus();
   }
 
   // Unset via sector should only remove mapping.
   // Unset via chart-list should remove both mapping and decrement chart.
   unsetChartMapping(chartForIsland, decrementChart) {
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
     let newTrackerState = trackerState;
+    let newDatabaseState = databaseState;
 
     if (decrementChart) {
       const island = LogicHelper.islandFromChartForIsland(chartForIsland);
@@ -344,13 +638,31 @@ class Tracker extends React.PureComponent {
 
       newTrackerState = newTrackerState
         .decrementItem(chart);
+
+      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        itemName: chart,
+        count: newTrackerState.getItemValue(chart),
+      });
     }
 
     newTrackerState = newTrackerState
       .decrementItem(chartForIsland)
       .unsetChartMapping(chartForIsland);
+    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+      itemName: chartForIsland,
+      count: newTrackerState.getItemValue(chartForIsland),
+    });
 
-    this.updateTrackerState(newTrackerState);
+    const island = LogicHelper.islandFromChartForIsland(chartForIsland);
+    const chart = trackerState.getChartFromChartMapping(island);
+
+    newDatabaseState = databaseLogic.setIslandsForCharts(newDatabaseState, {
+      chart,
+      island: null,
+      useRoomId: true,
+    });
+
+    this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
   updateOpenedChartForIsland(openedChartForIsland) {
@@ -487,6 +799,9 @@ class Tracker extends React.PureComponent {
       chartListOpen,
       colorPickerOpen,
       colors,
+      databaseConnected,
+      databaseLogic,
+      databaseState,
       disableLogic,
       entrancesListOpen,
       isLoading,
@@ -523,11 +838,14 @@ class Tracker extends React.PureComponent {
     } else {
       content = (
         <div className="tracker-container">
+          {!databaseConnected && <div className="darken-background" />}
           <div className="tracker">
             {startingItemSelection && <div className="darken-background" />}
             <ItemsTable
               backgroundColor={itemsTableBackground}
               changedStartingItems={changedStartingItems}
+              databaseLogic={databaseLogic}
+              databaseState={databaseState}
               decrementItem={this.decrementItem}
               decrementStartingItem={this.decrementStartingItem}
               incrementItem={this.incrementItem}
@@ -542,6 +860,8 @@ class Tracker extends React.PureComponent {
               chartListOpen={chartListOpen}
               clearOpenedMenus={this.clearOpenedMenus}
               clearRaceModeBannedLocations={this.clearRaceModeBannedLocations}
+              databaseLogic={databaseLogic}
+              databaseState={databaseState}
               decrementItem={this.decrementItem}
               disableLogic={disableLogic}
               entrancesListOpen={entrancesListOpen}
@@ -595,6 +915,19 @@ class Tracker extends React.PureComponent {
               updateLogic={this.updateLogic}
             />
           )}
+          <div className="coop-status-box">
+            <div className="coop-status">
+              Server status:&nbsp;
+              {databaseConnected ? <div className="connected">Connected</div>
+                : <div className="disconnected">Disconnected </div>}
+            </div>
+            <div className="coop-status">
+              Mode:&nbsp;
+              <div className="connected">
+                {databaseLogic.mode}
+              </div>
+            </div>
+          </div>
           <Buttons
             colorPickerOpen={colorPickerOpen}
             disableLogic={disableLogic}
@@ -628,8 +961,10 @@ class Tracker extends React.PureComponent {
 }
 
 Tracker.propTypes = {
+  mode: PropTypes.string.isRequired,
   loadProgress: PropTypes.bool.isRequired,
   permalink: PropTypes.string.isRequired,
+  gameId: PropTypes.string.isRequired,
 };
 
 export default Tracker;
