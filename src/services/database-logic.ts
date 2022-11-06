@@ -113,6 +113,11 @@ export interface Settings {
   certainSettings: object
 }
 
+function getCookie(n) {
+  let a = `; ${document.cookie}`.match(`;\\s*${n}=([^;]+)`);
+  return a ? a[1] : '';
+}
+
 export default class DatabaseLogic {
   connected: boolean;
   connectingToast: Id;
@@ -234,7 +239,9 @@ export default class DatabaseLogic {
       });
       this.updateConnectedStatus(false)
     }
-    this.websocket = new WebSocket(process.env.WEBSOCKET_SERVER, "protocolOne");
+
+    const cookieUserId = getCookie('userId');
+    this.websocket = new WebSocket(process.env.WEBSOCKET_SERVER + (cookieUserId ? `?userId=${cookieUserId}` : ''), "protocolOne");
 
     this.websocket.onmessage = this.handleOnMessage.bind(this);
 
@@ -521,7 +528,7 @@ export default class DatabaseLogic {
 
   private setUserId(data: OnConnect) {
     this.userId = data.userId;
-    document.cookie = `userId=${this.userId}; Secure`;
+    document.cookie = `userId=${this.userId}; Secure; SameSite=None`;
     console.log(`userId set to '${this.userId}'`);
   }
   private onJoinedRoom(data: OnJoinedRoom) {
