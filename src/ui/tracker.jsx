@@ -171,7 +171,7 @@ class Tracker extends React.PureComponent {
     });
   }
 
-  databaseInitialLoad(data) {
+  async databaseInitialLoad(data) {
     const { databaseLogic, databaseState, trackerState } = this.state;
 
     const newDatabaseState = databaseState.setState(data, databaseLogic);
@@ -232,10 +232,25 @@ class Tracker extends React.PureComponent {
       }
     });
 
+    let refreshLogic = false;
+    if (!_.isEmpty(newDatabaseState.rsSettings.options)) {
+      Settings.updateOptions(newDatabaseState.rsSettings.options);
+      refreshLogic = true;
+    }
+
+    if (!_.isEmpty(newDatabaseState.rsSettings.certainSettings)) {
+      Settings.updateCertainSettings(newDatabaseState.rsSettings.certainSettings);
+      refreshLogic = true;
+    }
+
+    if (refreshLogic) {
+      await TrackerController.refreshLogic();
+    }
+
     this.updateTrackerState(newTrackerState, newDatabaseState);
   }
 
-  databaseUpdate(data) {
+  async databaseUpdate(data) {
     const { databaseLogic, databaseState, trackerState } = this.state;
 
     const newTrackerState = trackerState._clone({
@@ -252,6 +267,7 @@ class Tracker extends React.PureComponent {
       items: true,
       itemsForLocations: true,
       locationsChecked: true,
+      rsSettings: true,
     });
 
     if (data.type === SaveDataType.ENTRANCE) {
@@ -303,6 +319,18 @@ class Tracker extends React.PureComponent {
       );
     }
 
+    if (data.type === SaveDataType.RS_SETTINGS) {
+      const {
+        settings, userId,
+      } = data;
+      newDatabaseState = newDatabaseState.setRsSettings(
+        userId,
+        {
+          settings,
+        },
+      );
+    }
+
     if (data.userId === databaseLogic.userId || data.userId === databaseLogic.roomId) {
       if (data.type === SaveDataType.ENTRANCE) {
         const { entranceName, exitName } = data;
@@ -330,6 +358,17 @@ class Tracker extends React.PureComponent {
           [generalLocation, detailedLocation],
           isChecked,
         );
+      } else if (data.type === SaveDataType.RS_SETTINGS) {
+        const {
+          settings: {
+            options: newOptions,
+            certainSettings: newCertainSettings,
+          },
+        } = data;
+
+        Settings.updateOptions(newOptions);
+        Settings.updateCertainSettings(newCertainSettings);
+        await TrackerController.refreshLogic();
       }
     }
 
@@ -727,18 +766,25 @@ class Tracker extends React.PureComponent {
   async toggleStartingItemSelection() {
     const { changedStartingItems, startingItemSelection, trackerState } = this.state;
 
-    const {
-      newChangedStartingItems,
-      newTrackerState,
-    } = changedStartingItems.applyChangedStartingItems(trackerState);
+    if (startingItemSelection && !_.isEmpty(changedStartingItems.changedItems)) {
+      const {
+        newChangedStartingItems,
+        newOptions,
+        newTrackerState,
+      } = changedStartingItems.applyChangedStartingItems(trackerState);
 
-    this.setState({
-      changedStartingItems: newChangedStartingItems,
-      startingItemSelection: !startingItemSelection,
-      trackerState: newTrackerState,
-    });
+      this.setState({
+        changedStartingItems: newChangedStartingItems,
+        startingItemSelection: !startingItemSelection,
+        trackerState: newTrackerState,
+      });
 
-    await this.updateLogic();
+      await this.updateLogic({ newOptions });
+    } else {
+      this.setState({
+        startingItemSelection: !startingItemSelection,
+      });
+    }
   }
 
   toggleTrackSpheres() {
@@ -757,7 +803,7 @@ class Tracker extends React.PureComponent {
 
   async updateLogic(options = {}) {
     const { newCertainSettings, newOptions } = options;
-    const { trackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
 
     if (newOptions) {
       Settings.updateOptions(newOptions);
@@ -769,7 +815,21 @@ class Tracker extends React.PureComponent {
 
     const { logic: newLogic } = TrackerController.refreshState(trackerState);
 
-    this.setState({ logic: newLogic, spheres: new Spheres(trackerState) });
+    const newDatabaseState = databaseLogic.setRsSettings(
+      databaseState,
+      {
+        settings: {
+          certainSettings: newCertainSettings,
+          options: newOptions,
+        },
+      },
+    );
+
+    this.setState({
+      databaseState: newDatabaseState,
+      logic: newLogic,
+      spheres: new Spheres(trackerState),
+    });
   }
 
   updatePreferences(preferenceChanges) {

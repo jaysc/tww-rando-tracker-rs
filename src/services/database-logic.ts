@@ -46,6 +46,7 @@ export interface OnJoinedRoom {
   // Key: generalLocation#detailedLocation
   //(key -> (User -> useritem))
   locationsChecked: LocationsChecked;
+  rsSettings: Settings;
 }
 
 export enum Mode {
@@ -58,6 +59,7 @@ export enum SaveDataType {
   ISLANDS_FOR_CHARTS = 'ISLANDS_FOR_CHARTS',
   ITEM = "ITEM",
   LOCATION = "LOCATION",
+  RS_SETTINGS = 'RS_SETTINGS'
 }
 
 export type OnDataSaved = {
@@ -100,6 +102,17 @@ export interface LocationPayload {
   useRoomId?: boolean
 }
 
+export interface RsSettingsPayload {
+  settings: Settings
+  type: SaveDataType
+  useRoomId?: boolean
+}
+
+export interface Settings {
+  options: object
+  certainSettings: object
+}
+
 export default class DatabaseLogic {
   connected: boolean;
   connectingToast: Id;
@@ -117,7 +130,7 @@ export default class DatabaseLogic {
 
   databaseInitialLoad: (data: OnJoinedRoom) => void;
   databaseUpdate: (data: OnDataSaved) => void;
-  onConnectedStatusChanged:(status: boolean) => void;
+  onConnectedStatusChanged: (status: boolean) => void;
 
   get effectiveUserId() {
     return this.mode === Mode.ITEMSYNC ? this.roomId : this.userId;
@@ -332,7 +345,7 @@ export default class DatabaseLogic {
 
     this.send(message);
 
-    return databaseState.setEntrance(useRoomId ? this.roomId :this.effectiveUserId, entrancePayload)
+    return databaseState.setEntrance(useRoomId ? this.roomId : this.effectiveUserId, entrancePayload)
   }
 
   public setIslandsForCharts(
@@ -352,7 +365,7 @@ export default class DatabaseLogic {
 
     this.send(message);
 
-    return databaseState.setIslandsForCharts(useRoomId ? this.roomId :this.effectiveUserId, islandsForChartsPayload)
+    return databaseState.setIslandsForCharts(useRoomId ? this.roomId : this.effectiveUserId, islandsForChartsPayload)
   }
 
   public setItem(
@@ -386,7 +399,7 @@ export default class DatabaseLogic {
     let newDatabaseState = databaseState.setItem(useRoomId ? this.roomId : this.effectiveUserId, itemPayload)
 
     if (generalLocation && detailedLocation) {
-      newDatabaseState = newDatabaseState.setItemsForLocations(useRoomId ? this.roomId :this.effectiveUserId, itemPayload);
+      newDatabaseState = newDatabaseState.setItemsForLocations(useRoomId ? this.roomId : this.effectiveUserId, itemPayload);
     }
 
     return newDatabaseState;
@@ -427,6 +440,24 @@ export default class DatabaseLogic {
     this.send(message);
 
     let newDatabaseState = databaseState.setLocation(useRoomId ? this.roomId : this.effectiveUserId, locationPayload);
+
+    return newDatabaseState;
+  }
+
+  public setRsSettings(databaseState: DatabaseState, rsSettingsPayload: RsSettingsPayload) {
+    const { settings } = rsSettingsPayload;
+    const message = {
+      method: "set",
+      payload: {
+        type: SaveDataType.RS_SETTINGS,
+        settings,
+        useRoomId: true
+      },
+    };
+
+    this.send(message);
+
+    let newDatabaseState = databaseState.setRsSettings(this.roomId, rsSettingsPayload);
 
     return newDatabaseState;
   }

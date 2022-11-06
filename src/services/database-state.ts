@@ -1,6 +1,6 @@
 import _ from "lodash";
 import DatabaseHelper from "./database-helper";
-import DatabaseLogic, { EntrancePayload, IslandsForChartPayload, ItemPayload, LocationPayload, OnJoinedRoom } from "./database-logic";
+import DatabaseLogic, { EntrancePayload, IslandsForChartPayload, ItemPayload, LocationPayload, OnJoinedRoom, RsSettingsPayload, Settings } from "./database-logic";
 
 export type IslandsForCharts = Record<string, Record<string, IslandsForChartsValue>>;
 export type IslandsForChartsValue = {
@@ -32,6 +32,7 @@ export default class DatabaseState {
   items: object
   locationsChecked: object
   itemsForLocations: object
+  rsSettings: Settings
 
   constructor() {
     this.entrances = {};
@@ -39,6 +40,7 @@ export default class DatabaseState {
     this.items = {};
     this.locationsChecked = {};
     this.itemsForLocations = {};
+    this.rsSettings = { options: {}, certainSettings: {}};
   }
 
   public setState(data: OnJoinedRoom) {
@@ -48,6 +50,7 @@ export default class DatabaseState {
       items: true,
       itemsForLocations: true,
       locationsChecked: true,
+      rsSettings: true,
     });
 
     newState.entrances = data.entrances;
@@ -55,6 +58,7 @@ export default class DatabaseState {
     newState.items = data.items;
     newState.locationsChecked = data.locationsChecked;
     newState.itemsForLocations = data.itemsForLocation;
+    newState.rsSettings = data.rsSettings;
 
     return newState;
   }
@@ -136,18 +140,34 @@ export default class DatabaseState {
     return newState;
   }
 
+  public setRsSettings(userId: string, {settings}: RsSettingsPayload) {
+    const newState = this._clone({
+      rsSettings: true,
+    });
+
+    if (settings) {
+      _.set(newState.rsSettings, ['rsSettings', userId], { data: JSON.stringify(settings) });
+    } else {
+      _.unset(newState.rsSettings, ['rsSettings', userId]);
+    }
+
+    return newState;
+  }
+
   _clone({
     entrances: cloneEntrances,
     islandsForCharts: cloneIslandsForCharts,
     items: cloneItems,
     locationsChecked: cloneLocationsChecked,
     itemsForLocations: cloneItemsForLocations,
+    rsSettings: cloneRsSettings,
   }: {
     entrances?: boolean,
     islandsForCharts?: boolean,
     items?: boolean,
     locationsChecked?: boolean,
     itemsForLocations?: boolean,
+    rsSettings?: boolean,
   }) {
     const newState = new DatabaseState();
 
@@ -166,6 +186,9 @@ export default class DatabaseState {
     newState.itemsForLocations = cloneItemsForLocations
       ? _.cloneDeep(this.itemsForLocations)
       : this.itemsForLocations;
+    newState.rsSettings = cloneRsSettings
+      ? _.cloneDeep(this.rsSettings)
+      : this.rsSettings;
 
     return newState;
   }

@@ -67,6 +67,10 @@ class Settings {
     return _.includes(this.flags, flag);
   }
 
+  static getOptions() {
+    return this.options;
+  }
+
   static getOptionValue(optionName) {
     const optionValue = _.get(this.options, optionName);
 
@@ -88,6 +92,7 @@ class Settings {
 
   static updateStartingGear(newStartingGear) {
     this.startingGear = newStartingGear;
+    this.startingGear = this.setOptionValue(Permalink.OPTIONS.STARTING_GEAR, newStartingGear);
   }
 
   static getVersion() {
@@ -106,6 +111,7 @@ class Settings {
 
   static updateOptions(newOptions) {
     this.options = newOptions;
+    this.startingGear = this.getOptionValue(Permalink.OPTIONS.STARTING_GEAR);
     this.flags = this.resolveFlags(newOptions);
   }
 
