@@ -38,7 +38,10 @@ class Tracker extends React.PureComponent {
         sphereTrackingBackground: null,
         statisticsBackground: null,
       },
-      databaseConnected: false,
+      databaseStats: {
+        connected: false,
+        connectedUsers: 0,
+      },
       disableLogic: false,
       entrancesListOpen: false,
       isLoading: true,
@@ -81,6 +84,7 @@ class Tracker extends React.PureComponent {
     this.updateOpenedExit = this.updateOpenedExit.bind(this);
     this.updateOpenedLocation = this.updateOpenedLocation.bind(this);
 
+    this.databaseRoomUpdate = this.databaseRoomUpdate.bind(this);
     this.databaseConnectedStatusChanged = this.databaseConnectedStatusChanged.bind(this);
     this.databaseInitialLoad = this.databaseInitialLoad.bind(this);
     this.databaseUpdate = this.databaseUpdate.bind(this);
@@ -121,13 +125,14 @@ class Tracker extends React.PureComponent {
     let databaseLogic;
     if (gameId) {
       databaseLogic = new DatabaseLogic({
-        permaId: permalink,
         gameId,
-        mode,
-        onConnectedStatusChanged: this.databaseConnectedStatusChanged.bind(this),
-        databaseInitialLoad: this.databaseInitialLoad.bind(this),
-        databaseUpdate: this.databaseUpdate.bind(this),
         initialData,
+        mode,
+        onRoomUpdate: this.databaseRoomUpdate.bind(this),
+        onConnectedStatusChanged: this.databaseConnectedStatusChanged.bind(this),
+        onDataSaved: this.databaseUpdate.bind(this),
+        onJoinedRoom: this.databaseInitialLoad.bind(this),
+        permaId: permalink,
       });
     }
 
@@ -165,14 +170,30 @@ class Tracker extends React.PureComponent {
     }
   }
 
-  databaseConnectedStatusChanged(newConnectedState) {
+  databaseRoomUpdate(data) {
+    const { databaseStats } = this.state;
+
+    const newDatabaseStats = _.merge({}, databaseStats, { connectedUsers: data.connectedUsers });
+
     this.setState({
-      databaseConnected: newConnectedState,
+      databaseStats: newDatabaseStats,
+    });
+  }
+
+  databaseConnectedStatusChanged(newConnectedState) {
+    const { databaseStats } = this.state;
+
+    const newDatabaseStats = _.merge({}, databaseStats, { connected: newConnectedState });
+
+    this.setState({
+      databaseStats: newDatabaseStats,
     });
   }
 
   async databaseInitialLoad(data) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const {
+      databaseLogic, databaseState, databaseStats, trackerState,
+    } = this.state;
 
     const newDatabaseState = databaseState.setState(data, databaseLogic);
 
@@ -247,7 +268,12 @@ class Tracker extends React.PureComponent {
       await TrackerController.refreshLogic();
     }
 
-    this.updateTrackerState(newTrackerState, newDatabaseState);
+    await this.asyncUpdateTrackerState(newTrackerState, newDatabaseState);
+
+    const newDatabaseStats = _.merge({}, databaseStats, { connectedUsers: data.connectedUsers });
+    this.setState({
+      databaseStats: newDatabaseStats,
+    });
   }
 
   async databaseUpdate(data) {
@@ -372,7 +398,7 @@ class Tracker extends React.PureComponent {
       }
     }
 
-    this.updateTrackerState(newTrackerState, newDatabaseState);
+    await this.asyncUpdateTrackerState(newTrackerState, newDatabaseState);
   }
 
   incrementItem(itemName) {
@@ -484,17 +510,50 @@ class Tracker extends React.PureComponent {
   }
 
   clearRaceModeBannedLocations(dungeonName) {
-    let { trackerState: newTrackerState } = this.state;
+    const { databaseLogic, databaseState, trackerState } = this.state;
+
+    let newTrackerState = trackerState;
+    let newDatabaseState = databaseState;
 
     const raceModeBannedLocations = LogicHelper.raceModeBannedLocations(dungeonName);
 
     _.forEach(raceModeBannedLocations, ({ generalLocation, detailedLocation }) => {
       if (!newTrackerState.isLocationChecked(generalLocation, detailedLocation)) {
         newTrackerState = newTrackerState.toggleLocationChecked(generalLocation, detailedLocation);
+
+        newDatabaseState = databaseLogic.setLocation(
+          newDatabaseState,
+          { generalLocation, detailedLocation, isChecked: true },
+        );
       }
     });
 
-    this.updateTrackerState(newTrackerState);
+    this.updateTrackerState(newTrackerState, newDatabaseState);
+  }
+
+  async asyncUpdateTrackerState(newTrackerState, newDatabaseState) {
+    const {
+      logic,
+      saveData,
+      spheres,
+      trackerState,
+    } = TrackerController.refreshState(newTrackerState);
+
+    const {
+      databaseState,
+    } = this.state;
+
+    Storage.saveToStorage(saveData);
+
+    return new Promise((resolve) => {
+      this.setState({
+        databaseState: newDatabaseState ?? databaseState,
+        logic,
+        saveData,
+        spheres,
+        trackerState,
+      }, resolve);
+    });
   }
 
   updateTrackerState(newTrackerState, newDatabaseState) {
@@ -859,8 +918,8 @@ class Tracker extends React.PureComponent {
       chartListOpen,
       colorPickerOpen,
       colors,
-      databaseConnected,
       databaseLogic,
+      databaseStats,
       databaseState,
       disableLogic,
       entrancesListOpen,
@@ -898,7 +957,7 @@ class Tracker extends React.PureComponent {
     } else {
       content = (
         <div className="tracker-container">
-          {!databaseConnected && <div className="darken-background" />}
+          {!databaseStats.connected && <div className="darken-background" />}
           <div className="tracker">
             {startingItemSelection && <div className="darken-background" />}
             <ItemsTable
@@ -978,8 +1037,14 @@ class Tracker extends React.PureComponent {
           <div className="coop-status-box">
             <div className="coop-status">
               Server status:&nbsp;
-              {databaseConnected ? <div className="connected">Connected</div>
+              {databaseStats.connected ? <div className="connected">Connected</div>
                 : <div className="disconnected">Disconnected </div>}
+            </div>
+            <div className="coop-status">
+              Number of users:&nbsp;
+              <div className="connected">
+                {databaseStats.connectedUsers}
+              </div>
             </div>
             <div className="coop-status">
               Mode:&nbsp;

@@ -3,5 +3,5 @@ dist
 node_modules
 npm-debug.log
 docs
-.vscode
 .env
+/.vscode

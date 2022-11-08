@@ -2,6 +2,7 @@ import { v4 } from "uuid";
 import _ from "lodash";
 import { Id, toast } from "react-toastify";
 import DatabaseState, { Entrances, IslandsForCharts, Items, ItemsForLocations, LocationsChecked } from "./database-state";
+import DatabaseQueue from "./database-queue";
 
 export interface IDatabaseLogic {
   userId?: string;
@@ -10,8 +11,9 @@ export interface IDatabaseLogic {
   mode?: string;
   initialData?: InitialData;
   onConnectedStatusChanged: (status: boolean) => void;
-  databaseInitialLoad: (data: OnJoinedRoom) => void;
-  databaseUpdate: (data: OnDataSaved) => void;
+  onJoinedRoom: (data: OnJoinedRoom) => void;
+  onDataSaved: (data: OnDataSaved) => void;
+  onRoomUpdate: (data: RoomUpdateEvent) => void;
 }
 
 type InitialData = {
@@ -113,6 +115,10 @@ export interface Settings {
   certainSettings: object
 }
 
+export interface RoomUpdateEvent {
+  connectedUsers: number
+}
+
 function getCookie(n) {
   let a = `; ${document.cookie}`.match(`;\\s*${n}=([^;]+)`);
   return a ? a[1] : '';
@@ -120,12 +126,14 @@ function getCookie(n) {
 
 export default class DatabaseLogic {
   connected: boolean;
+  connectedUsers: number;
   connectingToast: Id;
   disconnectedToast: Id;
   gameId: string;
   initialData: InitialData;
   mode: Mode;
   permaId: string;
+  queue: DatabaseQueue = new DatabaseQueue();
   roomId: string;
   successToast: Id;
   userId: string;
@@ -133,9 +141,10 @@ export default class DatabaseLogic {
 
   retryInterval?: NodeJS.Timeout;
 
-  databaseInitialLoad: (data: OnJoinedRoom) => void;
-  databaseUpdate: (data: OnDataSaved) => void;
-  onConnectedStatusChanged: (status: boolean) => void;
+  onJoinedRoom: (data: OnJoinedRoom) => void;
+  onDataSaved: (data: OnDataSaved) => void;
+  onConnectedStatusChanged:(status: boolean) => void;
+  onRoomUpdate: (data: RoomUpdateEvent) => void;
 
   get effectiveUserId() {
     return this.mode === Mode.ITEMSYNC ? this.roomId : this.userId;
@@ -150,8 +159,9 @@ export default class DatabaseLogic {
     this.gameId = options.gameId;
     this.permaId = options.permaId;
     this.onConnectedStatusChanged = options.onConnectedStatusChanged;
-    this.databaseInitialLoad = options.databaseInitialLoad;
-    this.databaseUpdate = options.databaseUpdate;
+    this.onJoinedRoom = options.onJoinedRoom;
+    this.onDataSaved = options.onDataSaved;
+    this.onRoomUpdate = options.onRoomUpdate;
     this.mode = options.mode.toUpperCase() as Mode ?? Mode.COOP;
 
     //This all needs to be reviewed. isn't used
@@ -518,12 +528,32 @@ export default class DatabaseLogic {
         this.joinroom();
         break;
       case "joinedRoom":
-        this.onJoinedRoom(responseData.data as OnJoinedRoom);
+        this.onJoinedRoomHandle(responseData.data as OnJoinedRoom);
         break;
       case "dataSaved":
-        this.onDataSaved(responseData.data as OnDataSaved);
+        this.onDataSavedHandle(responseData.data as OnDataSaved);
+        break;
+      case "roomUpdate":
+        this.onRoomUpdateHandle(responseData.data as RoomUpdateEvent);
         break;
     }
+  }
+
+  private onRoomUpdateHandle(data: RoomUpdateEvent) {
+    let userChange = 0;
+    if (this.connectedUsers < data.connectedUsers) {
+      userChange = 1;
+      toast("User connected");
+    } else if (this.connectedUsers > data.connectedUsers) {
+      userChange = -1
+      toast("User disconnected");
+    }
+    this.connectedUsers = data.connectedUsers;
+
+    this.queue.Add({
+      data,
+      action: this.onRoomUpdate
+    });
   }
 
   private setUserId(data: OnConnect) {
@@ -531,14 +561,20 @@ export default class DatabaseLogic {
     document.cookie = `userId=${this.userId}; Secure; SameSite=None`;
     console.log(`userId set to '${this.userId}'`);
   }
-  private onJoinedRoom(data: OnJoinedRoom) {
+  private onJoinedRoomHandle(data: OnJoinedRoom) {
     //Initial load
     this.roomId = data.id;
-    this.databaseInitialLoad(data);
+    this.queue.Add({
+      data,
+      action: this.onJoinedRoom
+    });
   }
 
-  private onDataSaved(data: OnDataSaved) {
-    this.databaseUpdate(data);
+  private async onDataSavedHandle(data: OnDataSaved) {
+    this.queue.Add({
+      data,
+      action: this.onDataSaved
+    });
   }
 
   public getValue(data: IslandsForCharts | LocationsChecked | Items | ItemsForLocations | Entrances) {
@@ -553,3 +589,5 @@ export default class DatabaseLogic {
     return result ?? {};
   }
 }
+
+const message = []
