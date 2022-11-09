@@ -15,6 +15,7 @@ class ChangedStartingItems {
 
   applyChangedStartingItems(trackerState) {
     let newTrackerState = trackerState;
+    let newOptions;
 
     if (this.changedItems) {
       newTrackerState = trackerState._clone({ items: true });
@@ -58,10 +59,13 @@ class ChangedStartingItems {
       Settings.updateStartingGear(newStartingGear);
 
       this.reset();
+
+      newOptions = Settings.getOptions();
     }
 
     return {
       newChangedStartingItems: this,
+      newOptions,
       newTrackerState,
     };
   }
