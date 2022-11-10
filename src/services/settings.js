@@ -92,7 +92,7 @@ class Settings {
 
   static updateStartingGear(newStartingGear) {
     this.startingGear = newStartingGear;
-    this.startingGear = this.setOptionValue(Permalink.OPTIONS.STARTING_GEAR, newStartingGear);
+    this.setOptionValue(Permalink.OPTIONS.STARTING_GEAR, newStartingGear);
   }
 
   static getVersion() {
