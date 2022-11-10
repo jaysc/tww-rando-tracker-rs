@@ -417,6 +417,7 @@ class Tracker extends React.PureComponent {
 
     const {
       newChangedStartingItems,
+      newOptions,
       newTrackerState,
     } = changedStartingItems.applyChangedStartingItems(trackerState);
 
@@ -426,7 +427,7 @@ class Tracker extends React.PureComponent {
       trackerState: newTrackerState,
     });
 
-    await this.updateLogic();
+    await this.updateLogic({ newOptions });
   }
 
   toggleTrackSpheres() {
