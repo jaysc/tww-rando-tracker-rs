@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { v4 } from "uuid";
 import _ from "lodash";
 import { Id, toast } from "react-toastify";
@@ -37,17 +38,14 @@ interface OnConnect {
 }
 
 export interface OnJoinedRoom {
-  id: string;
+  users: Record<string, string>;
   entrances: Entrances;
+  id: string;
   islandsForCharts: IslandsForCharts;
-  //(itemname -> (User -> useritem))
   items: Items;
-
   itemsForLocation: ItemsForLocations;
-
-  // Key: generalLocation#detailedLocation
-  //(key -> (User -> useritem))
   locationsChecked: LocationsChecked;
+  mode: Mode;
   rsSettings: Settings;
 }
 
@@ -59,8 +57,9 @@ export enum Mode {
 export enum SaveDataType {
   ENTRANCE = 'ENTRANCE',
   ISLANDS_FOR_CHARTS = 'ISLANDS_FOR_CHARTS',
-  ITEM = "ITEM",
-  LOCATION = "LOCATION",
+  ITEMS_FOR_LOCATIONS = 'ITEMS_FOR_LOCATIONS',
+  ITEM = 'ITEM',
+  LOCATION = 'LOCATION',
   RS_SETTINGS = 'RS_SETTINGS'
 }
 
@@ -95,6 +94,13 @@ export interface ItemPayload {
   useRoomId?: boolean
 }
 
+export interface ItemsForLocationsPayload {
+  itemName: string
+  generalLocation: string
+  detailedLocation: string
+  useRoomId?: boolean
+}
+
 export interface LocationPayload {
   generalLocation: string
   detailedLocation: string
@@ -116,7 +122,7 @@ export interface Settings {
 }
 
 export interface RoomUpdateEvent {
-  connectedUsers: number
+  users: Record<string, string>
 }
 
 function getCookie(n) {
@@ -126,7 +132,6 @@ function getCookie(n) {
 
 export default class DatabaseLogic {
   connected: boolean;
-  connectedUsers: number;
   connectingToast: Id;
   disconnectedToast: Id;
   gameId: string;
@@ -137,6 +142,7 @@ export default class DatabaseLogic {
   roomId: string;
   successToast: Id;
   userId: string;
+  users: Record<string, string>
   websocket: WebSocket;
 
   retryInterval?: NodeJS.Timeout;
@@ -155,14 +161,13 @@ export default class DatabaseLogic {
   }
 
   constructor(options: IDatabaseLogic) {
-    console.log("connecting to server");
     this.gameId = options.gameId;
     this.permaId = options.permaId;
     this.onConnectedStatusChanged = options.onConnectedStatusChanged;
     this.onJoinedRoom = options.onJoinedRoom;
     this.onDataSaved = options.onDataSaved;
     this.onRoomUpdate = options.onRoomUpdate;
-    this.mode = options.mode.toUpperCase() as Mode ?? Mode.COOP;
+    this.mode = options.mode?.toUpperCase() as Mode ?? Mode.COOP;
 
     //This all needs to be reviewed. isn't used
     if (options.initialData) {
@@ -327,6 +332,7 @@ export default class DatabaseLogic {
       method: "joinRoom",
       payload: {
         name: this.gameId,
+        username: getCookie('username'),
         perma: this.permaId,
         mode: this.mode,
         initialData: this.initialData,
@@ -418,6 +424,35 @@ export default class DatabaseLogic {
     if (generalLocation && detailedLocation) {
       newDatabaseState = newDatabaseState.setItemsForLocations(useRoomId ? this.roomId : this.effectiveUserId, itemPayload);
     }
+
+    return newDatabaseState;
+  }
+
+  public setItemsForLocations(
+    databaseState: DatabaseState,
+    itemsForLocationsPayload: ItemsForLocationsPayload
+  ) {
+    const {
+      itemName,
+      generalLocation,
+      detailedLocation,
+      useRoomId
+    } = itemsForLocationsPayload;
+
+    const message = {
+      method: "set",
+      payload: {
+        type: SaveDataType.ITEMS_FOR_LOCATIONS,
+        itemName,
+        generalLocation,
+        detailedLocation,
+        useRoomId: useRoomId || this.globalUseRoom,
+      },
+    };
+
+    this.send(message);
+
+    let newDatabaseState = databaseState.setItemsForLocations(useRoomId ? this.roomId :this.effectiveUserId, itemsForLocationsPayload);
 
     return newDatabaseState;
   }
@@ -541,16 +576,18 @@ export default class DatabaseLogic {
 
   private onRoomUpdateHandle(data: RoomUpdateEvent) {
     let userChange = 0;
-    if (this.connectedUsers < data.connectedUsers) {
+    if (_.size(this.users) < _.size(data.users)) {
       userChange = 1;
       toast("User connected");
-    } else if (this.connectedUsers > data.connectedUsers) {
+    } else if (_.size(this.users) > _.size(data.users)) {
       userChange = -1
       toast("User disconnected");
     }
-    this.connectedUsers = data.connectedUsers;
 
-    this.queue.Add({
+    this.users = data.users;
+    document.cookie = `username=${_.get(this.users, this.userId)}; Secure; SameSite=None`;
+
+    this.queue.add({
       data,
       action: this.onRoomUpdate
     });
@@ -561,17 +598,20 @@ export default class DatabaseLogic {
     document.cookie = `userId=${this.userId}; Secure; SameSite=None`;
     console.log(`userId set to '${this.userId}'`);
   }
+
   private onJoinedRoomHandle(data: OnJoinedRoom) {
     //Initial load
     this.roomId = data.id;
-    this.queue.Add({
+    this.users = data.users;
+    document.cookie = `username=${_.get(this.users, this.userId)}; Secure; SameSite=None`;
+    this.queue.add({
       data,
       action: this.onJoinedRoom
     });
   }
 
   private async onDataSavedHandle(data: OnDataSaved) {
-    this.queue.Add({
+    this.queue.add({
       data,
       action: this.onDataSaved
     });
@@ -587,6 +627,17 @@ export default class DatabaseLogic {
     }
 
     return result ?? {};
+  }
+
+  public updateUsername(newName) {
+    const message = {
+      method: "setName",
+      payload: {
+        name: newName
+      },
+    };
+
+    this.send(message);
   }
 }
 

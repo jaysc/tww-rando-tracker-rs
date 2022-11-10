@@ -113,7 +113,7 @@ class ExtraLocation extends React.PureComponent {
     const smallKeyImages = _.get(Images.IMAGES, 'SMALL_KEYS');
 
     const databaseMaxCount = DatabaseHelper.getMaxCount(databaseLogic, databaseState, smallKeyName);
-    const databaseLocations = DatabaseHelper.getDatabaseLocations(
+    const databaseLocations = DatabaseHelper.getLocationsForItem(
       databaseLogic,
       databaseState,
       smallKeyName,
@@ -160,7 +160,7 @@ class ExtraLocation extends React.PureComponent {
     const bigKeyCount = trackerState.getItemValue(bigKeyName);
 
     const databaseMaxCount = DatabaseHelper.getMaxCount(databaseLogic, databaseState, bigKeyName);
-    const databaseLocations = DatabaseHelper.getDatabaseLocations(
+    const databaseLocations = DatabaseHelper.getLocationsForItem(
       databaseLogic,
       databaseState,
       bigKeyName,
@@ -280,6 +280,8 @@ class ExtraLocation extends React.PureComponent {
 
   chestsCounter() {
     const {
+      databaseLogic,
+      databaseState,
       disableLogic,
       isDungeon,
       locationName,
@@ -295,6 +297,8 @@ class ExtraLocation extends React.PureComponent {
       isDungeon,
       onlyProgressLocations,
       disableLogic,
+      databaseLogic,
+      databaseState,
     });
 
     const className = `extra-location-chests ${color}`;

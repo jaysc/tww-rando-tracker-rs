@@ -2,6 +2,7 @@ import _ from 'lodash';
 
 import KEYS from '../data/keys.json';
 
+import DatabaseHelper from './database-helper.ts';
 import Locations from './locations';
 import LogicHelper from './logic-helper';
 import Memoizer from './memoizer';
@@ -47,6 +48,7 @@ class LogicCalculation {
     NON_PROGRESS_LOCATION: 'non-progress-location',
     UNAVAILABLE_LOCATION: 'unavailable-location',
     COOP_CHECKED_LOCATION: 'coop-checked-location',
+    COOP_CHECKED_LOCATION_ITEM: 'coop-checked-location-item',
   };
 
   formattedRequirementsForLocation(generalLocation, detailedLocation) {
@@ -64,7 +66,9 @@ class LogicCalculation {
     return this._formatRequirements(requirementsForEntrance);
   }
 
-  locationCounts(generalLocation, { isDungeon, onlyProgressLocations, disableLogic }) {
+  locationCounts(generalLocation, {
+    isDungeon, onlyProgressLocations, disableLogic, databaseLogic, databaseState,
+  }) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
       { isDungeon, onlyProgressLocations },
@@ -75,13 +79,33 @@ class LogicCalculation {
     let numCertain = 0;
     let numRemaining = 0;
 
+    let hasCoopItemLocation = false;
+
     _.forEach(detailedLocations, (detailedLocation) => {
-      if (!this.state.isLocationChecked(generalLocation, detailedLocation)) {
-        if (disableLogic || this.isLocationAvailable(generalLocation, detailedLocation)) {
+      const isLocationCoopChecked = DatabaseHelper.isLocationCoopChecked(
+        databaseState,
+        generalLocation,
+        detailedLocation,
+      );
+      const hasCoopItem = DatabaseHelper.getItemForLocation(
+        databaseLogic,
+        databaseState,
+        generalLocation,
+        detailedLocation,
+      ).length > 0;
+
+      if (
+        !this.state.isLocationChecked(generalLocation, detailedLocation)
+        && (!isLocationCoopChecked || hasCoopItem)) {
+        if (disableLogic
+          || this.isLocationAvailable(generalLocation, detailedLocation)) {
           numAvailable += 1;
 
           if (LogicHelper.isProgressLocation(generalLocation, detailedLocation)) {
             anyProgress = true;
+            if (hasCoopItem) {
+              hasCoopItemLocation = true;
+            }
           }
 
           if (LogicHelper.isCertainLocationType(generalLocation, detailedLocation)) {
@@ -92,12 +116,12 @@ class LogicCalculation {
       }
     });
 
-    const color = LogicCalculation._locationCountsColor(
-      numAvailable,
-      numRemaining,
-      anyProgress,
-      numCertain,
-    );
+    let color;
+    if (hasCoopItemLocation) {
+      color = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
+    } else {
+      color = LogicCalculation._locationCountsColor(numAvailable, numRemaining, anyProgress);
+    }
 
     return {
       color,

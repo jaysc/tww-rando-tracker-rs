@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import _ from "lodash";
 import DatabaseHelper from "./database-helper";
 import DatabaseLogic, { EntrancePayload, IslandsForChartPayload, ItemPayload, LocationPayload, OnJoinedRoom, RsSettingsPayload, Settings } from "./database-logic";
@@ -27,11 +29,11 @@ export type ItemsForLocationsValue = {
 }
 
 export default class DatabaseState {
-  entrances: object
-  islandsForCharts: object
-  items: object
-  locationsChecked: object
-  itemsForLocations: object
+  entrances: Entrances
+  islandsForCharts: IslandsForCharts
+  items: Items
+  locationsChecked: LocationsChecked
+  itemsForLocations: ItemsForLocations
   rsSettings: Settings
 
   constructor() {
@@ -98,8 +100,11 @@ export default class DatabaseState {
     const newState = this._clone({
       itemsForLocations: true,
     });
-
-    _.set(newState.itemsForLocations, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId], { itemName: itemName ?? "" })
+    if (itemName){
+      _.set(newState.itemsForLocations, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId], { itemName })
+    } else {
+      _.unset(newState.itemsForLocations, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId]);
+    }
 
     return newState;
   }

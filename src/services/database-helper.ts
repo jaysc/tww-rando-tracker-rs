@@ -20,7 +20,7 @@ export default class DatabaseHelper {
     );
   }
 
-  public static getDatabaseLocations(databaseLogic: DatabaseLogic, databaseState: DatabaseState, itemName: string) {
+  public static getLocationsForItem(databaseLogic: DatabaseLogic, databaseState: DatabaseState, itemName: string) {
     return _.reduce(
       databaseState.itemsForLocations,
       (acc, data, location) => {
@@ -42,6 +42,25 @@ export default class DatabaseHelper {
       [],
     );
   }
+
+  public static getItemForLocation = (databaseLogic: DatabaseLogic
+    , databaseState: DatabaseState
+    , generalLocation: string
+    , detailedLocation: string
+    ) => _.reduce(
+    _.get(databaseState, ['itemsForLocations', DatabaseHelper.getLocationKey(generalLocation, detailedLocation)]),
+    (acc, itemData, userId) => {
+      if (databaseLogic.effectiveUserId !== userId) {
+        const { itemName } = itemData;
+        if (!acc.includes(itemName)) {
+          acc.push(itemName);
+        }
+      }
+
+      return acc;
+    },
+    [],
+  );
 
   public static isLocationCoopChecked(databaseState: DatabaseState
     , generalLocation: string

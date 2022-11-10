@@ -16,36 +16,59 @@ import TrackerState from '../services/tracker-state';
 import Images from './images';
 import KeyDownWrapper from './key-down-wrapper';
 import MapTable from './map-table';
-import RequirementsTooltip from './requirements-tooltip';
 import Tooltip from './tooltip';
 
 class DetailedLocationsTable extends React.PureComponent {
   static NUM_ROWS = 13;
 
-  requirementsTooltip(generalLocation, detailedLocation, locationTypes) {
-    const { logic } = this.props;
-
-    const requirements = logic.formattedRequirementsForLocation(generalLocation, detailedLocation);
-
-    return (
-      <RequirementsTooltip locationTypes={locationTypes} requirements={requirements} />
-    );
-  }
-
-  itemTooltip(generalLocation, detailedLocation, locationTypes, databaseItems) {
-    const { trackerState } = this.props;
+  itemTooltip({
+    databaseItems,
+    detailedLocation,
+    disableLogic,
+    generalLocation,
+    isLocationChecked,
+    locationSettings,
+  }) {
+    const { logic, trackerState } = this.props;
 
     const itemForLocation = trackerState.getItemForLocation(generalLocation, detailedLocation);
 
+    let requirementsContent;
     let itemForLocationContent;
     let databaseItemForLocationContent;
     let locationTypeContent;
     let prettyItemName;
 
-    if (!_.isNil(locationTypes)) {
+    if (!disableLogic && !isLocationChecked) {
+      const requirements = logic.formattedRequirementsForLocation(
+        generalLocation,
+        detailedLocation,
+      );
+
+      const requirementsList = _.map(requirements, (elements, rowIndex) => (
+        <li key={rowIndex}>
+          {
+            _.map(elements, ({ color, text }, elementIndex) => (
+              <span className={color} key={elementIndex}>{text}</span>
+            ))
+          }
+        </li>
+      ));
+
+      requirementsContent = (
+        <>
+          <div className="tooltip-title">Items Required</div>
+          <ul>
+            {requirementsList}
+          </ul>
+        </>
+      );
+    }
+
+    if (!_.isNil(locationSettings)) {
       locationTypeContent = (
         <div className="tooltip-title">
-          {`Settings: ${locationTypes}`}
+          {`Settings: ${locationSettings}`}
         </div>
       );
     }
@@ -107,13 +130,15 @@ class DetailedLocationsTable extends React.PureComponent {
       }
     }
 
-    if (!itemForLocationContent && !databaseItemForLocationContent && !locationTypeContent) {
+    if (!itemForLocationContent && !databaseItemForLocationContent
+      && !locationTypeContent && !requirementsContent) {
       return null;
     }
 
     return (
       <div className="tooltip">
         {locationTypeContent}
+        {requirementsContent}
         {itemForLocationContent}
         {databaseItemForLocationContent}
       </div>
@@ -159,28 +184,29 @@ class DetailedLocationsTable extends React.PureComponent {
       locationText = location;
     }
 
+    const isDatabaseChecked = DatabaseHelper.isLocationCoopChecked(
+      databaseState,
+      openedLocation,
+      location,
+    );
+
+    const databaseItems = DatabaseHelper.getItemForLocation(
+      databaseLogic,
+      databaseState,
+      openedLocation,
+      location,
+    );
+
     const isLocationChecked = color === LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION;
-    const isDatabaseChecked = _.some(
-      _.get(databaseState, ['locationsChecked', DatabaseHelper.getLocationKey(openedLocation, location)]),
-      (value, userId) => databaseLogic.effectiveUserId !== userId && value.isChecked,
-    );
-    const databaseItems = _.reduce(
-      _.get(databaseState, ['itemsForLocations', DatabaseHelper.getLocationKey(openedLocation, location)]),
-      (acc, itemData, userId) => {
-        if (databaseLogic.effectiveUserId !== userId) {
-          const { itemName } = itemData;
-          if (!acc.includes(itemName)) {
-            acc.push(itemName);
-          }
-        }
+    let cssColor = color;
+    if (!isLocationChecked) {
+      if (databaseItems.length > 0) {
+        cssColor = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
+      } else if (!isLocationChecked && isDatabaseChecked) {
+        cssColor = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION;
+      }
+    }
 
-        return acc;
-      },
-      [],
-    );
-
-    const cssColor = (!isLocationChecked && isDatabaseChecked)
-      ? LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION : color;
     const locationElement = (
       <div
         className={`detail-span ${cssColor} ${fontSizeClassName}`}
@@ -202,39 +228,23 @@ class DetailedLocationsTable extends React.PureComponent {
     const locationSettings = locationTypes
       ? LogicHelper.locationTypeToSetting(locationTypes) : null;
 
-    let locationContent;
-    if (disableLogic || isLocationChecked || databaseItems.length > 0) {
-      let itemTooltip = null;
-      if (trackSpheres) {
-        itemTooltip = this.itemTooltip(openedLocation, location, locationSettings, databaseItems);
-      } else if (locationSettings) {
-        itemTooltip = (
-          <div className="tooltip">
-            <div className="tooltip-title">
-              {`Settings: ${locationSettings}`}
-            </div>
-          </div>
-          , databaseItems);
-      }
-
-      locationContent = (
-        <Tooltip tooltipContent={itemTooltip}>
-          {locationElement}
-        </Tooltip>
-      );
-    } else {
-      const requirementsTooltip = this.requirementsTooltip(
-        openedLocation,
-        location,
+    let itemTooltip = null;
+    if (trackSpheres) {
+      itemTooltip = this.itemTooltip({
+        disableLogic,
+        isLocationChecked,
+        generalLocation: openedLocation,
+        detailedLocation: location,
+        databaseItems,
         locationSettings,
-      );
-
-      locationContent = (
-        <Tooltip tooltipContent={requirementsTooltip}>
-          {locationElement}
-        </Tooltip>
-      );
+      });
     }
+
+    const locationContent = (
+      <Tooltip tooltipContent={itemTooltip}>
+        {locationElement}
+      </Tooltip>
+    );
 
     return (
       <td key={location}>
