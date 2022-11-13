@@ -679,18 +679,12 @@ button:hover:enabled {
   color: #2929cc;
 }
 
-.certain-available-location {
-  @extend .available-location;
+.certain-location {
   text-decoration: underline;
 }
 
-.sea-sector:nth-last-child(-n+7) .chests-counter.certain-available-location {
+.sea-sector:nth-last-child(-n+7) .chests-counter.certain-location {
   text-decoration-thickness: 2px;
-}
-
-.certain-unavailable-location {
-  @extend .unavailable-location;
-  text-decoration: underline;
 }
 
 .coop-checked-location {
