@@ -150,7 +150,6 @@ class LogicCalculation {
         disableLogic || isAvailable,
         isChecked,
         isProgress,
-        isCertain,
       );
 
       if (isCertain) {

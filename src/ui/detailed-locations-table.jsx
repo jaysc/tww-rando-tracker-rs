@@ -197,7 +197,7 @@ class DetailedLocationsTable extends React.PureComponent {
       location,
     );
 
-    const isLocationChecked = color === LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION;
+    const isLocationChecked = color.includes(LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION);
     let cssColor = color;
     if (!isLocationChecked) {
       if (databaseItems.length > 0) {
