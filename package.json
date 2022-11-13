@@ -1,7 +1,7 @@
 {
   "name": "tww-rando-tracker-rs",
   "version": "1.0.0",
-  "description": "Tracker for The Wind Waker Randomizer Random Settings",
+  "description": "Tracker for The Wind Waker Randomizer Random Settings Coop",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "webpack",

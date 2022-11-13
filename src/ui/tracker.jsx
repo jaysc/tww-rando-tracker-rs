@@ -182,7 +182,8 @@ class Tracker extends React.PureComponent {
   databaseRoomUpdate(data) {
     const { databaseStats } = this.state;
 
-    const newDatabaseStats = _.merge({}, databaseStats, { users: data.users });
+    const newDatabaseStats = _.clone(databaseStats);
+    _.set(newDatabaseStats, 'users', data.users, {});
 
     this.setState({
       databaseStats: newDatabaseStats,
