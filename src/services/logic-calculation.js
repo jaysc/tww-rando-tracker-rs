@@ -86,12 +86,12 @@ class LogicCalculation {
         generalLocation,
         detailedLocation,
       );
-      const hasCoopItem = DatabaseHelper.getItemForLocation(
+      const hasCoopItem = DatabaseHelper.hasCoopItem(
         databaseLogic,
         databaseState,
         generalLocation,
         detailedLocation,
-      ).length > 0;
+      );
 
       if (
         !this.state.isLocationChecked(generalLocation, detailedLocation)
@@ -115,12 +115,12 @@ class LogicCalculation {
       }
     });
 
-    let color;
-    if (hasCoopItemLocation) {
-      color = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
-    } else {
-      color = LogicCalculation._locationCountsColor(numAvailable, numRemaining, anyProgress);
-    }
+    let color = LogicCalculation._locationCountsColor(
+      numAvailable,
+      numRemaining,
+      anyProgress,
+      hasCoopItemLocation,
+    );
 
     if (numCertain > 0 && numAvailable > 0) {
       color += ` ${LogicCalculation.LOCATION_COLORS.CERTAIN_LOCATION}`;
@@ -134,7 +134,9 @@ class LogicCalculation {
     };
   }
 
-  locationsList(generalLocation, { isDungeon, onlyProgressLocations, disableLogic }) {
+  locationsList(generalLocation, {
+    isDungeon, onlyProgressLocations, databaseLogic, databaseState, disableLogic,
+  }) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
       { isDungeon, onlyProgressLocations },
@@ -145,11 +147,24 @@ class LogicCalculation {
       const isChecked = this.state.isLocationChecked(generalLocation, detailedLocation);
       const isProgress = LogicHelper.isProgressLocation(generalLocation, detailedLocation);
       const isCertain = LogicHelper.isCertainLocationType(generalLocation, detailedLocation);
+      const isLocationCoopChecked = DatabaseHelper.isLocationCoopChecked(
+        databaseState,
+        generalLocation,
+        detailedLocation,
+      );
+      const hasCoopItem = DatabaseHelper.hasCoopItem(
+        databaseLogic,
+        databaseState,
+        generalLocation,
+        detailedLocation,
+      );
 
       let color = LogicCalculation._locationColor(
         disableLogic || isAvailable,
         isChecked,
         isProgress,
+        isLocationCoopChecked,
+        hasCoopItem,
       );
 
       if (isCertain) {
@@ -656,9 +671,12 @@ class LogicCalculation {
     });
   }
 
-  static _locationCountsColor(numAvailable, numRemaining, anyProgress) {
+  static _locationCountsColor(numAvailable, numRemaining, anyProgress, hasCoopItemLocation) {
     if (numRemaining === 0) {
       return this.LOCATION_COLORS.CHECKED_LOCATION;
+    }
+    if (hasCoopItemLocation) {
+      return this.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
     }
     if (numAvailable === 0) {
       return this.LOCATION_COLORS.UNAVAILABLE_LOCATION;
@@ -669,9 +687,15 @@ class LogicCalculation {
     return this.LOCATION_COLORS.NON_PROGRESS_LOCATION;
   }
 
-  static _locationColor(isAvailable, isChecked, isProgress) {
+  static _locationColor(isAvailable, isChecked, isProgress, isLocationCoopChecked, hasCoopItem) {
     if (isChecked) {
       return this.LOCATION_COLORS.CHECKED_LOCATION;
+    }
+    if (hasCoopItem) {
+      return this.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
+    }
+    if (isLocationCoopChecked) {
+      return this.LOCATION_COLORS.COOP_CHECKED_LOCATION;
     }
     if (!isAvailable) {
       return this.LOCATION_COLORS.UNAVAILABLE_LOCATION;

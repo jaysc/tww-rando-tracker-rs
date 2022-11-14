@@ -184,12 +184,6 @@ class DetailedLocationsTable extends React.PureComponent {
       locationText = location;
     }
 
-    const isDatabaseChecked = DatabaseHelper.isLocationCoopChecked(
-      databaseState,
-      openedLocation,
-      location,
-    );
-
     const databaseItems = DatabaseHelper.getItemForLocation(
       databaseLogic,
       databaseState,
@@ -198,18 +192,10 @@ class DetailedLocationsTable extends React.PureComponent {
     );
 
     const isLocationChecked = color.includes(LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION);
-    let cssColor = color;
-    if (!isLocationChecked) {
-      if (databaseItems.length > 0) {
-        cssColor = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION_ITEM;
-      } else if (!isLocationChecked && isDatabaseChecked) {
-        cssColor = LogicCalculation.LOCATION_COLORS.COOP_CHECKED_LOCATION;
-      }
-    }
 
     const locationElement = (
       <div
-        className={`detail-span ${cssColor} ${fontSizeClassName}`}
+        className={`detail-span ${color} ${fontSizeClassName}`}
         onClick={toggleLocationFunc}
         onKeyDown={KeyDownWrapper.onSpaceKey(toggleLocationFunc)}
         role="button"
@@ -257,6 +243,8 @@ class DetailedLocationsTable extends React.PureComponent {
     const {
       clearOpenedMenus,
       clearRaceModeBannedLocations,
+      databaseLogic,
+      databaseState,
       disableLogic,
       logic,
       onlyProgressLocations,
@@ -272,6 +260,8 @@ class DetailedLocationsTable extends React.PureComponent {
     const detailedLocations = logic.locationsList(
       openedLocation,
       {
+        databaseLogic,
+        databaseState,
         disableLogic,
         isDungeon: openedLocationIsDungeon,
         onlyProgressLocations,
