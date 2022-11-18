@@ -172,8 +172,6 @@ class DetailedLocationsTable extends React.PureComponent {
       fontSizeClassName = 'font-small';
     }
 
-    const toggleLocationFunc = () => toggleLocationChecked(openedLocation, location);
-
     let locationText;
     if (trackSpheres) {
       const sphere = spheres.sphereForLocation(openedLocation, location);
@@ -190,6 +188,8 @@ class DetailedLocationsTable extends React.PureComponent {
       openedLocation,
       location,
     );
+
+    const toggleLocationFunc = () => toggleLocationChecked(openedLocation, location, databaseItems);
 
     const isLocationChecked = color.includes(LogicCalculation.LOCATION_COLORS.CHECKED_LOCATION);
 
