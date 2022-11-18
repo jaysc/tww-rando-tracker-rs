@@ -123,6 +123,7 @@ export interface Settings {
 
 export interface RoomUpdateEvent {
   users: Record<string, string>
+  rsSettingsInProgressUserId: string
 }
 
 function getCookie(n) {
@@ -629,11 +630,22 @@ export default class DatabaseLogic {
     return result ?? {};
   }
 
-  public updateUsername(newName) {
+  public updateUsername(newName: string) {
     const message = {
       method: "setName",
       payload: {
         name: newName
+      },
+    };
+
+    this.send(message);
+  }
+
+  public settingsUpdate(inProgress: boolean) {
+    const message = {
+      method: "settingsUpdate",
+      payload: {
+        rsSettingsInProgressUserId: inProgress ? this.userId : ''
       },
     };
 

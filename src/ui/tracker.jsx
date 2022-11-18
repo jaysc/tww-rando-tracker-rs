@@ -40,6 +40,7 @@ class Tracker extends React.PureComponent {
       },
       databaseStats: {
         connected: false,
+        rsSettingsInProgressUserId: '',
         users: {},
       },
       disableLogic: false,
@@ -184,6 +185,7 @@ class Tracker extends React.PureComponent {
 
     const newDatabaseStats = _.clone(databaseStats);
     _.set(newDatabaseStats, 'users', data.users, {});
+    _.set(newDatabaseStats, 'rsSettingsInProgressUserId', data.rsSettingsInProgressUserId, '');
 
     this.setState({
       databaseStats: newDatabaseStats,
@@ -280,7 +282,11 @@ class Tracker extends React.PureComponent {
 
     await this.asyncUpdateTrackerState(newTrackerState, newDatabaseState);
 
-    const newDatabaseStats = _.merge({}, databaseStats, { users: data.users });
+    const newDatabaseStats = _.merge({}, databaseStats, {
+      users: data.users,
+      rsSettingsInProgressUserId: data.rsSettingsInProgressUserId,
+    });
+
     this.setState({
       databaseStats: newDatabaseStats,
     });
@@ -837,7 +843,9 @@ class Tracker extends React.PureComponent {
   }
 
   toggleSettingsWindow() {
-    const { settingsWindowOpen } = this.state;
+    const { databaseLogic, settingsWindowOpen } = this.state;
+
+    databaseLogic.settingsUpdate(!settingsWindowOpen);
 
     this.setState({
       settingsWindowOpen: !settingsWindowOpen,
@@ -1103,6 +1111,8 @@ class Tracker extends React.PureComponent {
           </div>
           <Buttons
             colorPickerOpen={colorPickerOpen}
+            databaseLogic={databaseLogic}
+            databaseStats={databaseStats}
             disableLogic={disableLogic}
             chartListOpen={chartListOpen}
             entrancesListOpen={entrancesListOpen}

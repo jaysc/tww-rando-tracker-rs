@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import DatabaseLogic from '../services/database-logic';
 import LogicHelper from '../services/logic-helper';
 
 import Storage from './storage';
@@ -22,6 +23,8 @@ class Buttons extends React.PureComponent {
     const {
       chartListOpen,
       colorPickerOpen,
+      databaseLogic,
+      databaseStats,
       disableLogic,
       entrancesListOpen,
       onlyProgressLocations,
@@ -106,6 +109,8 @@ class Buttons extends React.PureComponent {
         </button>
         <button
           onClick={toggleSettingsWindow}
+          disabled={!!databaseStats.rsSettingsInProgressUserId
+            && databaseStats.rsSettingsInProgressUserId !== databaseLogic.userId}
           type="button"
         >
           {settingsWindowText}
@@ -125,6 +130,12 @@ class Buttons extends React.PureComponent {
 Buttons.propTypes = {
   chartListOpen: PropTypes.bool.isRequired,
   colorPickerOpen: PropTypes.bool.isRequired,
+  databaseLogic: PropTypes.instanceOf(DatabaseLogic).isRequired,
+  databaseStats: PropTypes.exact({
+    connected: PropTypes.bool.isRequired,
+    rsSettingsInProgressUserId: PropTypes.string.isRequired,
+    users: PropTypes.object.isRequired,
+  }).isRequired,
   disableLogic: PropTypes.bool.isRequired,
   entrancesListOpen: PropTypes.bool.isRequired,
   onlyProgressLocations: PropTypes.bool.isRequired,
