@@ -885,22 +885,40 @@ class Tracker extends React.PureComponent {
   }
 
   async toggleStartingItemSelection() {
-    const { changedStartingItems, startingItemSelection, trackerState } = this.state;
+    const {
+      changedStartingItems,
+      databaseLogic,
+      databaseState,
+      startingItemSelection,
+      trackerState,
+    } = this.state;
 
     if (startingItemSelection && !_.isEmpty(changedStartingItems.changedItems)) {
       const {
-        newChangedStartingItems,
         newOptions,
         newTrackerState,
       } = changedStartingItems.applyChangedStartingItems(trackerState);
 
-      this.setState({
-        changedStartingItems: newChangedStartingItems,
-        startingItemSelection: !startingItemSelection,
-        trackerState: newTrackerState,
+      let newDatabaseState = databaseState._clone({ items: true });
+      _.forEach(changedStartingItems.changedItems, (value, itemName) => {
+        const currentItemValue = _.get(newDatabaseState, ['items', itemName, databaseLogic.userId, 'count'], 0);
+        if (value > currentItemValue) {
+          newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+            itemName,
+            count: newTrackerState.getItemValue(itemName),
+            useRoomId: true,
+          });
+        }
       });
 
-      await this.updateLogic({ newOptions });
+      this.setState({
+        changedStartingItems: ChangedStartingItems.initialize(),
+        databaseState: newDatabaseState,
+        startingItemSelection: !startingItemSelection,
+        trackerState: newTrackerState,
+      }, async () => {
+        await this.updateLogic({ newOptions });
+      });
     } else {
       this.setState({
         startingItemSelection: !startingItemSelection,

@@ -83,23 +83,7 @@ export default class Launcher extends React.PureComponent {
             </ul>
           </div>
           <div className="heading">
-            Additional Information
-          </div>
-          <div className="text">
-            <ul>
-              <li>
-                <a href="https://github.com/tanjo3/wwrando/blob/random-settings/randomizers/random_settings.md">Random Settings Weights</a>
-              </li>
-              <li>
-                <a href="https://docs.google.com/document/d/1ALwPFVHX5RUSGpVJQyi5lah20quBe98ZP5msayRpbjQ/view">Hints Documentation</a>
-              </li>
-              <li>
-                <a href="https://drive.google.com/file/d/1mPhzoxL0wAPs7-a5Q1tM5AOx5jpb3lx9/view">Caves Interior Guide</a>
-              </li>
-            </ul>
-          </div>
-          <div className="heading">
-            Notes
+            Coop Notes
           </div>
           <div className="text">
             <ul>
@@ -118,6 +102,22 @@ export default class Launcher extends React.PureComponent {
                 <ul>
                   <li>All rooms have a lifetime of 30 minutes based on the last action taken.</li>
                 </ul>
+              </li>
+            </ul>
+          </div>
+          <div className="heading">
+            Additional Information
+          </div>
+          <div className="text">
+            <ul>
+              <li>
+                <a href="https://github.com/tanjo3/wwrando/blob/random-settings/randomizers/random_settings.md">Random Settings Weights</a>
+              </li>
+              <li>
+                <a href="https://docs.google.com/document/d/1ALwPFVHX5RUSGpVJQyi5lah20quBe98ZP5msayRpbjQ/view">Hints Documentation</a>
+              </li>
+              <li>
+                <a href="https://drive.google.com/file/d/1mPhzoxL0wAPs7-a5Q1tM5AOx5jpb3lx9/view">Caves Interior Guide</a>
               </li>
             </ul>
           </div>

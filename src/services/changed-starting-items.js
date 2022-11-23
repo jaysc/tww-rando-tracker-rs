@@ -58,13 +58,10 @@ class ChangedStartingItems {
       const newStartingGear = _.merge(startingGear, newChangedStartingItems);
       Settings.updateStartingGear(newStartingGear);
 
-      this.reset();
-
       newOptions = Settings.getOptions();
     }
 
     return {
-      newChangedStartingItems: this,
       newOptions,
       newTrackerState,
     };
@@ -120,10 +117,6 @@ class ChangedStartingItems {
       itemName,
       LogicHelper.startingItemCount(itemName) ?? 0,
     );
-  }
-
-  reset() {
-    this.changedItems = {};
   }
 }
 
