@@ -60,14 +60,20 @@ class TrackerState {
     return _.set(this.items, itemName, value);
   }
 
-  incrementItem(itemName) {
-    const newState = this._clone({ items: true });
-
+  newIncrementItemValue(itemName) {
     let newItemCount = 1 + this.getItemValue(itemName);
     const maxItemCount = LogicHelper.maxItemCount(itemName);
     if (newItemCount > maxItemCount) {
       newItemCount = LogicHelper.startingItemCount(itemName);
     }
+
+    return newItemCount;
+  }
+
+  incrementItem(itemName) {
+    const newState = this._clone({ items: true });
+
+    const newItemCount = this.newIncrementItemValue(itemName);
     _.set(newState.items, itemName, newItemCount);
 
     return newState;

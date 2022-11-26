@@ -172,11 +172,17 @@ class ChartList extends React.PureComponent {
       const databaseList = _.reduce(databaseLocations, (acc, {
         generalLocation, detailedLocation,
       }) => {
-        const sphere = spheres.sphereForLocation(generalLocation, detailedLocation);
-        const sphereText = _.isNil(sphere) ? '?' : sphere;
         const locationName = `${generalLocation} | ${detailedLocation}`;
+        if (!_.some(locations, ({
+          generalLocation: existingGeneralLocation,
+          detailedLocation: existingDetailedLocation,
+        }) => generalLocation === existingGeneralLocation
+        && detailedLocation === existingDetailedLocation)
+        && !existingLocation.includes(locationName)) {
+          const sphere = spheres.sphereForLocation(generalLocation, detailedLocation);
+          const sphereText = _.isNil(sphere) ? '?' : sphere;
 
-        if (!existingLocation.includes(locationName)) {
+          existingLocation.push(locationName);
           acc.push((
             <li key={locationName}>
               {`[${sphereText}] ${locationName}`}
