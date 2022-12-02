@@ -2,7 +2,6 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import DatabaseLogic from '../services/database-logic.ts';
 import DatabaseState from '../services/database-state.ts';
 import LogicCalculation from '../services/logic-calculation';
 import LogicHelper from '../services/logic-helper';
@@ -18,10 +17,10 @@ class SeaChart extends React.PureComponent {
       clearSelectedChartForIsland,
       clearSelectedItem,
       clearSelectedLocation,
-      databaseLogic,
       databaseState,
       decrementItem,
       disableLogic,
+      hideCoopItemLocations,
       incrementItem,
       logic,
       onlyProgressLocations,
@@ -29,6 +28,7 @@ class SeaChart extends React.PureComponent {
       setSelectedExit,
       setSelectedItem,
       setSelectedLocation,
+      showCoopItemSettings,
       spheres,
       trackerState,
       trackSpheres,
@@ -44,10 +44,10 @@ class SeaChart extends React.PureComponent {
         clearSelectedChartForIsland={clearSelectedChartForIsland}
         clearSelectedItem={clearSelectedItem}
         clearSelectedLocation={clearSelectedLocation}
-        databaseLogic={databaseLogic}
         databaseState={databaseState}
         decrementItem={decrementItem}
         disableLogic={disableLogic}
+        hideCoopItemLocations={hideCoopItemLocations}
         key={island}
         incrementItem={incrementItem}
         island={island}
@@ -57,6 +57,7 @@ class SeaChart extends React.PureComponent {
         setSelectedExit={setSelectedExit}
         setSelectedItem={setSelectedItem}
         setSelectedLocation={setSelectedLocation}
+        showCoopItemSettings={showCoopItemSettings}
         spheres={spheres}
         trackerState={trackerState}
         trackSpheres={trackSpheres}
@@ -89,10 +90,10 @@ SeaChart.propTypes = {
   clearSelectedChartForIsland: PropTypes.func.isRequired,
   clearSelectedItem: PropTypes.func.isRequired,
   clearSelectedLocation: PropTypes.func.isRequired,
-  databaseLogic: PropTypes.instanceOf(DatabaseLogic).isRequired,
   databaseState: PropTypes.instanceOf(DatabaseState).isRequired,
   decrementItem: PropTypes.func.isRequired,
   disableLogic: PropTypes.bool.isRequired,
+  hideCoopItemLocations: PropTypes.bool.isRequired,
   incrementItem: PropTypes.func.isRequired,
   logic: PropTypes.instanceOf(LogicCalculation).isRequired,
   onlyProgressLocations: PropTypes.bool.isRequired,
@@ -100,6 +101,9 @@ SeaChart.propTypes = {
   setSelectedExit: PropTypes.func.isRequired,
   setSelectedItem: PropTypes.func.isRequired,
   setSelectedLocation: PropTypes.func.isRequired,
+  showCoopItemSettings: PropTypes.shape({
+    charts: PropTypes.bool.isRequired,
+  }).isRequired,
   spheres: PropTypes.instanceOf(Spheres).isRequired,
   trackerState: PropTypes.instanceOf(TrackerState).isRequired,
   trackSpheres: PropTypes.bool.isRequired,

@@ -66,7 +66,12 @@ class LogicCalculation {
   }
 
   locationCounts(generalLocation, {
-    isDungeon, onlyProgressLocations, disableLogic, databaseLogic, databaseState,
+    isDungeon,
+    onlyProgressLocations,
+    disableLogic,
+    databaseState,
+    hideCoopItemLocations,
+    showCoopItemSettings,
   }) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
@@ -87,15 +92,18 @@ class LogicCalculation {
         detailedLocation,
       );
       const hasCoopItem = DatabaseHelper.hasCoopItem(
-        databaseLogic,
         databaseState,
         generalLocation,
         detailedLocation,
+        {
+          disableLogic,
+          showCoopItemSettings,
+        },
       );
 
       if (
         !this.state.isLocationChecked(generalLocation, detailedLocation)
-        && (!isLocationCoopChecked || hasCoopItem)) {
+        && ((!isLocationCoopChecked || (hasCoopItem && !hideCoopItemLocations)))) {
         if (disableLogic
           || this.isLocationAvailable(generalLocation, detailedLocation)) {
           numAvailable += 1;
@@ -135,7 +143,7 @@ class LogicCalculation {
   }
 
   locationsList(generalLocation, {
-    isDungeon, onlyProgressLocations, databaseLogic, databaseState, disableLogic,
+    isDungeon, onlyProgressLocations, databaseState, disableLogic, showCoopItemSettings,
   }) {
     const detailedLocations = LogicHelper.filterDetailedLocations(
       generalLocation,
@@ -153,10 +161,13 @@ class LogicCalculation {
         detailedLocation,
       );
       const hasCoopItem = DatabaseHelper.hasCoopItem(
-        databaseLogic,
         databaseState,
         generalLocation,
         detailedLocation,
+        {
+          disableLogic,
+          showCoopItemSettings,
+        },
       );
 
       let color = LogicCalculation._locationColor(

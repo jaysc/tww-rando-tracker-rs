@@ -2,7 +2,13 @@
 import { v4 } from "uuid";
 import _ from "lodash";
 import { Id, toast } from "react-toastify";
-import DatabaseState, { Entrances, IslandsForCharts, Items, ItemsForLocations, LocationsChecked } from "./database-state";
+import DatabaseState, {
+  Entrances,
+  IslandsForCharts,
+  Items,
+  ItemsForLocations,
+  LocationsChecked,
+} from "./database-state";
 import DatabaseQueue from "./database-queue";
 
 export interface IDatabaseLogic {
@@ -26,11 +32,11 @@ type InitialData = {
 };
 
 interface MessageEvent {
-  data?: object
-  error?: string
-  event: string
-  message?: string
-  messageId?: string
+  data?: object;
+  error?: string;
+  event: string;
+  message?: string;
+  messageId?: string;
 }
 
 interface OnConnect {
@@ -55,12 +61,12 @@ export enum Mode {
 }
 
 export enum SaveDataType {
-  ENTRANCE = 'ENTRANCE',
-  ISLANDS_FOR_CHARTS = 'ISLANDS_FOR_CHARTS',
-  ITEMS_FOR_LOCATIONS = 'ITEMS_FOR_LOCATIONS',
-  ITEM = 'ITEM',
-  LOCATION = 'LOCATION',
-  RS_SETTINGS = 'RS_SETTINGS'
+  ENTRANCE = "ENTRANCE",
+  ISLANDS_FOR_CHARTS = "ISLANDS_FOR_CHARTS",
+  ITEMS_FOR_LOCATIONS = "ITEMS_FOR_LOCATIONS",
+  ITEM = "ITEM",
+  LOCATION = "LOCATION",
+  RS_SETTINGS = "RS_SETTINGS",
 }
 
 export type OnDataSaved = {
@@ -74,40 +80,40 @@ export type OnDataSaved = {
 };
 
 export interface EntrancePayload {
-  entranceName: string
-  exitName: string
-  useRoomId?: boolean
+  entranceName: string;
+  exitName: string;
+  useRoomId?: boolean;
 }
 
 export interface IslandsForChartPayload {
-  chart: string
-  island: string
-  useRoomId?: boolean
+  chart: string;
+  island: string;
+  useRoomId?: boolean;
 }
 
 export interface ItemPayload {
-  itemName: string
-  count?: number
-  generalLocation?: string
-  detailedLocation?: string
-  sphere?: number
-  useRoomId?: boolean
+  itemName: string;
+  count?: number;
+  generalLocation?: string;
+  detailedLocation?: string;
+  sphere?: number;
+  useRoomId?: boolean;
 }
 
 export interface ItemsForLocationsPayload {
-  itemName: string
-  generalLocation: string
-  detailedLocation: string
-  useRoomId?: boolean
+  itemName: string;
+  generalLocation: string;
+  detailedLocation: string;
+  useRoomId?: boolean;
 }
 
 export interface LocationPayload {
-  generalLocation: string
-  detailedLocation: string
-  isChecked?: boolean
-  itemName?: string
-  sphere?: number
-  useRoomId?: boolean
+  generalLocation: string;
+  detailedLocation: string;
+  isChecked?: boolean;
+  itemName?: string;
+  sphere?: number;
+  useRoomId?: boolean;
 }
 
 export interface RsSettingsPayload {
@@ -122,53 +128,53 @@ export interface Settings {
 }
 
 export interface RoomUpdateEvent {
-  users: Record<string, string>
-  rsSettingsInProgressUserId: string
+  users: Record<string, string>;
+  rsSettingsInProgressUserId: string;
 }
 
 function getCookie(n) {
   let a = `; ${document.cookie}`.match(`;\\s*${n}=([^;]+)`);
-  return a ? a[1] : '';
+  return a ? a[1] : "";
 }
 
-export default class DatabaseLogic {
-  connected: boolean;
-  connectingToast: Id;
-  disconnectedToast: Id;
-  gameId: string;
-  initialData: InitialData;
-  mode: Mode;
-  permaId: string;
-  queue: DatabaseQueue = new DatabaseQueue();
-  roomId: string;
-  successToast: Id;
-  userId: string;
-  users: Record<string, string>
-  websocket: WebSocket;
+class DatabaseLogic {
+  static connected: boolean;
+  static connectingToast: Id;
+  static disconnectedToast: Id;
+  static gameId: string;
+  static initialData: InitialData;
+  static mode: Mode;
+  static permaId: string;
+  static queue: DatabaseQueue = new DatabaseQueue();
+  static roomId: string;
+  static successToast: Id;
+  static userId: string;
+  static users: Record<string, string>;
+  static websocket: WebSocket;
 
-  retryInterval?: NodeJS.Timeout;
+  static retryInterval?: NodeJS.Timeout;
 
-  onJoinedRoom: (data: OnJoinedRoom) => void;
-  onDataSaved: (data: OnDataSaved) => void;
-  onConnectedStatusChanged:(status: boolean) => void;
-  onRoomUpdate: (data: RoomUpdateEvent) => void;
+  static onJoinedRoom: (data: OnJoinedRoom) => void;
+  static onDataSaved: (data: OnDataSaved) => void;
+  static onConnectedStatusChanged: (status: boolean) => void;
+  static onRoomUpdate: (data: RoomUpdateEvent) => void;
 
-  get effectiveUserId() {
+  static get effectiveUserId() {
     return this.mode === Mode.ITEMSYNC ? this.roomId : this.userId;
   }
 
-  get globalUseRoom() {
+  static get globalUseRoom() {
     return this.mode === Mode.ITEMSYNC;
   }
 
-  constructor(options: IDatabaseLogic) {
+  public static initialize(options: IDatabaseLogic) {
     this.gameId = options.gameId;
     this.permaId = options.permaId;
     this.onConnectedStatusChanged = options.onConnectedStatusChanged;
     this.onJoinedRoom = options.onJoinedRoom;
     this.onDataSaved = options.onDataSaved;
     this.onRoomUpdate = options.onRoomUpdate;
-    this.mode = options.mode?.toUpperCase() as Mode ?? Mode.COOP;
+    this.mode = (options.mode?.toUpperCase() as Mode) ?? Mode.COOP;
 
     //This all needs to be reviewed. isn't used
     if (options.initialData) {
@@ -243,55 +249,59 @@ export default class DatabaseLogic {
     }
   }
 
-  public connect() {
+  public static connect() {
     if (!this.connectingToast) {
       this.connectingToast = toast("Connecting to server", {
         autoClose: false,
         closeButton: false,
         hideProgressBar: true,
         onClose: () => {
-          this.connectingToast = null
-        }
+          this.connectingToast = null;
+        },
       });
-      this.updateConnectedStatus(false)
+      this.updateConnectedStatus(false);
     }
 
-    const cookieUserId = getCookie('userId');
-    this.websocket = new WebSocket(process.env.WEBSOCKET_SERVER + (cookieUserId ? `?userId=${cookieUserId}` : ''), "protocolOne");
+    const cookieUserId = getCookie("userId");
+    this.websocket = new WebSocket(
+      process.env.WEBSOCKET_SERVER +
+        (cookieUserId ? `?userId=${cookieUserId}` : ""),
+      "protocolOne"
+    );
 
     this.websocket.onmessage = this.handleOnMessage.bind(this);
 
-    this.websocket.onopen = function (event) {
+    this.websocket.onopen = (event) => {
       this.clearConnectRetry();
       toast.dismiss(this.disconnectedToast);
       this.disconnectedToast = null;
       toast.dismiss(this.connectingToast);
       this.connectingToast = null;
       this.displaySuccessToast();
-      this.updateConnectedStatus(true)
-    }.bind(this);
+      this.updateConnectedStatus(true);
+    };
 
-    this.websocket.onclose = function (event) {
+    this.websocket.onclose = (event) => {
       console.warn(event);
       this.displayDisconnectToast();
       this.retryConnect();
-      this.updateConnectedStatus(false)
-    }.bind(this);
+      this.updateConnectedStatus(false);
+    };
 
-    this.websocket.onerror = function (event) {
+    this.websocket.onerror = (event) => {
       console.error(event);
       this.displayDisconnectToast();
       this.retryConnect();
-      this.updateConnectedStatus(false)
-    }.bind(this);
+      this.updateConnectedStatus(false);
+    };
   }
 
-  public updateConnectedStatus(newStatus: boolean) {
+  public static updateConnectedStatus(newStatus: boolean) {
     this.connected = newStatus;
     this.onConnectedStatusChanged(this.connected);
   }
 
-  private displayDisconnectToast() {
+  private static displayDisconnectToast() {
     if (this.successToast) {
       toast.dismiss(this.successToast);
     }
@@ -300,40 +310,40 @@ export default class DatabaseLogic {
         closeButton: false,
         hideProgressBar: true,
         onClose: () => {
-          this.disconnectedToast = null
-        }
+          this.disconnectedToast = null;
+        },
       });
     }
   }
 
-  private displaySuccessToast() {
+  private static displaySuccessToast() {
     if (!this.successToast) {
       this.successToast = toast.success("Connected to server", {
         hideProgressBar: true,
         onClose: () => {
-          this.successToast = null
-        }
+          this.successToast = null;
+        },
       });
     }
   }
 
-  private retryConnect() {
+  private static retryConnect() {
     if (!this.retryInterval) {
       this.retryInterval = setInterval(this.connect.bind(this), 2000);
     }
   }
 
-  private clearConnectRetry() {
+  private static clearConnectRetry() {
     clearInterval(this.retryInterval);
     this.retryInterval = null;
   }
 
-  private joinroom() {
+  private static joinroom() {
     const message = {
       method: "joinRoom",
       payload: {
         name: this.gameId,
-        username: getCookie('username'),
+        username: getCookie("username"),
         perma: this.permaId,
         mode: this.mode,
         initialData: this.initialData,
@@ -342,7 +352,7 @@ export default class DatabaseLogic {
     this.send(message);
   }
 
-  private getItem(itemName?: string) {
+  private static getItem(itemName?: string) {
     const message = {
       method: "get",
       payload: {
@@ -353,8 +363,10 @@ export default class DatabaseLogic {
     this.send(message);
   }
 
-  public setEntrance(databaseState: DatabaseState,
-    entrancePayload: EntrancePayload) {
+  public static setEntrance(
+    databaseState: DatabaseState,
+    entrancePayload: EntrancePayload
+  ) {
     const { entranceName, exitName, useRoomId } = entrancePayload;
 
     const message = {
@@ -363,18 +375,21 @@ export default class DatabaseLogic {
         type: SaveDataType.ENTRANCE,
         entranceName,
         exitName,
-        useRoomId: useRoomId || this.globalUseRoom
-      }
-    }
+        useRoomId: useRoomId || this.globalUseRoom,
+      },
+    };
 
     this.send(message);
 
-    return databaseState.setEntrance(useRoomId ? this.roomId : this.effectiveUserId, entrancePayload)
+    return databaseState.setEntrance(
+      useRoomId ? this.roomId :  this.effectiveUserId,
+      entrancePayload
+    );
   }
 
-  public setIslandsForCharts(
-    databaseState: DatabaseState
-    , islandsForChartsPayload: IslandsForChartPayload
+  public static setIslandsForCharts(
+    databaseState: DatabaseState,
+    islandsForChartsPayload: IslandsForChartPayload
   ) {
     const { island, chart, useRoomId } = islandsForChartsPayload;
     const message = {
@@ -383,16 +398,19 @@ export default class DatabaseLogic {
         type: SaveDataType.ISLANDS_FOR_CHARTS,
         island,
         chart,
-        useRoomId: useRoomId || this.globalUseRoom
-      }
-    }
+        useRoomId: useRoomId || this.globalUseRoom,
+      },
+    };
 
     this.send(message);
 
-    return databaseState.setIslandsForCharts(useRoomId ? this.roomId : this.effectiveUserId, islandsForChartsPayload)
+    return databaseState.setIslandsForCharts(
+      useRoomId ? this.roomId :  this.effectiveUserId,
+      islandsForChartsPayload
+    );
   }
 
-  public setItem(
+  public static setItem(
     databaseState: DatabaseState,
     itemPayload: ItemPayload
   ) {
@@ -402,7 +420,7 @@ export default class DatabaseLogic {
       generalLocation,
       detailedLocation,
       sphere,
-      useRoomId
+      useRoomId,
     } = itemPayload;
 
     const message = {
@@ -420,25 +438,27 @@ export default class DatabaseLogic {
 
     this.send(message);
 
-    let newDatabaseState = databaseState.setItem(useRoomId ? this.roomId : this.effectiveUserId, itemPayload)
+    let newDatabaseState = databaseState.setItem(
+      useRoomId ? this.roomId : this.effectiveUserId,
+      itemPayload
+    );
 
     if (generalLocation && detailedLocation) {
-      newDatabaseState = newDatabaseState.setItemsForLocations(useRoomId ? this.roomId : this.effectiveUserId, itemPayload);
+      newDatabaseState = newDatabaseState.setItemsForLocations(
+        useRoomId ? this.roomId :  this.effectiveUserId,
+        itemPayload
+      );
     }
 
     return newDatabaseState;
   }
 
-  public setItemsForLocations(
+  public static setItemsForLocations(
     databaseState: DatabaseState,
     itemsForLocationsPayload: ItemsForLocationsPayload
   ) {
-    const {
-      itemName,
-      generalLocation,
-      detailedLocation,
-      useRoomId
-    } = itemsForLocationsPayload;
+    const { itemName, generalLocation, detailedLocation, useRoomId } =
+      itemsForLocationsPayload;
 
     const message = {
       method: "set",
@@ -453,12 +473,18 @@ export default class DatabaseLogic {
 
     this.send(message);
 
-    let newDatabaseState = databaseState.setItemsForLocations(useRoomId ? this.roomId :this.effectiveUserId, itemsForLocationsPayload);
+    let newDatabaseState = databaseState.setItemsForLocations(
+      useRoomId ? this.roomId : this.effectiveUserId,
+      itemsForLocationsPayload
+    );
 
     return newDatabaseState;
   }
 
-  private getLocation(generalLocation: string, detailedLocation: string) {
+  private static getLocation(
+    generalLocation: string,
+    detailedLocation: string
+  ) {
     const message = {
       method: "get",
       data: {
@@ -471,13 +497,12 @@ export default class DatabaseLogic {
     this.send(message);
   }
 
-  public setLocation(databaseState: DatabaseState, locationPayload: LocationPayload) {
-    const {
-      generalLocation,
-      detailedLocation,
-      isChecked,
-      useRoomId
-    } = locationPayload;
+  public static setLocation(
+    databaseState: DatabaseState,
+    locationPayload: LocationPayload
+  ) {
+    const { generalLocation, detailedLocation, isChecked, useRoomId } =
+      locationPayload;
 
     const message = {
       method: "set",
@@ -492,7 +517,10 @@ export default class DatabaseLogic {
 
     this.send(message);
 
-    let newDatabaseState = databaseState.setLocation(useRoomId ? this.roomId : this.effectiveUserId, locationPayload);
+    let newDatabaseState = databaseState.setLocation(
+      useRoomId ? this.roomId : this.effectiveUserId,
+      locationPayload
+    );
 
     return newDatabaseState;
   }
@@ -515,7 +543,7 @@ export default class DatabaseLogic {
     return newDatabaseState;
   }
 
-  private send(message: object): string {
+  private static send(message: object): string {
     const messageId = v4();
     _.set(message, "messageId", messageId);
 
@@ -526,7 +554,7 @@ export default class DatabaseLogic {
     return messageId;
   }
 
-  private handleOnMessage(response) {
+  private static handleOnMessage(response) {
     if (response?.data === "PING") {
       this.websocket.send("PONG");
       return;
@@ -554,10 +582,6 @@ export default class DatabaseLogic {
       return;
     }
 
-    if (responseData.message) {
-      console.log(responseData.message);
-    }
-
     const event = responseData.event;
 
     switch (event) {
@@ -577,7 +601,7 @@ export default class DatabaseLogic {
     }
   }
 
-  private onRoomUpdateHandle(data: RoomUpdateEvent) {
+  private static onRoomUpdateHandle(data: RoomUpdateEvent) {
     let userChange = 0;
     if (_.size(this.users) < _.size(data.users)) {
       const connectedUser = _.find(data.users, (username, userId) => {
@@ -596,54 +620,78 @@ export default class DatabaseLogic {
     }
 
     this.users = data.users;
-    document.cookie = `username=${_.get(this.users, this.userId)}; Secure; SameSite=None`;
+    document.cookie = `username=${_.get(
+      this.users,
+      this.userId
+    )}; Secure; SameSite=None`;
 
     this.queue.add({
       data,
-      action: this.onRoomUpdate
+      action: this.onRoomUpdate,
     });
   }
 
-  private setUserId(data: OnConnect) {
+  private static setUserId(data: OnConnect) {
     this.userId = data.userId;
     document.cookie = `userId=${this.userId}; Secure; SameSite=None`;
   }
 
-  private onJoinedRoomHandle(data: OnJoinedRoom) {
+  private static onJoinedRoomHandle(data: OnJoinedRoom) {
     //Initial load
     this.roomId = data.id;
     this.users = data.users;
-    document.cookie = `username=${_.get(this.users, this.userId)}; Secure; SameSite=None`;
+    document.cookie = `username=${_.get(
+      this.users,
+      this.userId
+    )}; Secure; SameSite=None`;
     this.queue.add({
       data,
-      action: this.onJoinedRoom
+      action: this.onJoinedRoom,
     });
   }
 
-  private async onDataSavedHandle(data: OnDataSaved) {
+  private static async onDataSavedHandle(data: OnDataSaved) {
     this.queue.add({
       data,
-      action: this.onDataSaved
+      action: this.onDataSaved,
     });
   }
 
-  public getValue(data: IslandsForCharts | LocationsChecked | Items | ItemsForLocations | Entrances) {
+  public static getValue(
+    data:
+      | IslandsForCharts
+      | LocationsChecked
+      | Items
+      | ItemsForLocations
+      | Entrances
+  ) {
     let result;
 
-    result = _.get(data, this.effectiveUserId)
+    result = _.get(data, this.effectiveUserId);
 
     if (_.isNil(result)) {
-      result = _.get(data, this.roomId)
+      result = _.get(data, this.roomId);
     }
 
     return result ?? {};
   }
 
-  public updateUsername(newName: string) {
+  public static updateUsername(newName: string) {
     const message = {
       method: "setName",
       payload: {
-        name: newName
+        name: newName,
+      },
+    };
+
+    this.send(message);
+  }
+
+  public settingsUpdate(inProgress: boolean) {
+    const message = {
+      method: "settingsUpdate",
+      payload: {
+        rsSettingsInProgressUserId: inProgress ? this.userId : ''
       },
     };
 
@@ -662,4 +710,4 @@ export default class DatabaseLogic {
   }
 }
 
-const message = []
+export default DatabaseLogic;

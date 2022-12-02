@@ -2,38 +2,53 @@
 
 import _ from "lodash";
 import DatabaseHelper from "./database-helper";
-import DatabaseLogic, { EntrancePayload, IslandsForChartPayload, ItemPayload, LocationPayload, OnJoinedRoom, RsSettingsPayload, Settings } from "./database-logic";
+import {
+  EntrancePayload,
+  IslandsForChartPayload,
+  ItemPayload,
+  LocationPayload,
+  OnJoinedRoom, RsSettingsPayload, Settings,
+} from "./database-logic";
 
-export type IslandsForCharts = Record<string, Record<string, IslandsForChartsValue>>;
+export type IslandsForCharts = Record<
+  string,
+  Record<string, IslandsForChartsValue>
+>;
 export type IslandsForChartsValue = {
-  island: string
-}
+  island: string;
+};
 
 export type Entrances = Record<string, Record<string, EntrancesValue>>;
 export type EntrancesValue = {
-  entranceName: string
-}
+  entranceName: string;
+};
 export type Items = Record<string, Record<string, ItemsValue>>;
 export type ItemsValue = {
-  count: number
-}
+  count: number;
+};
 
-export type LocationsChecked = Record<string, Record<string, LocationsCheckedValue>>;
+export type LocationsChecked = Record<
+  string,
+  Record<string, LocationsCheckedValue>
+>;
 export type LocationsCheckedValue = {
-  isChecked: boolean
-}
+  isChecked: boolean;
+};
 
-export type ItemsForLocations = Record<string, Record<string, ItemsForLocationsValue>>;
+export type ItemsForLocations = Record<
+  string,
+  Record<string, ItemsForLocationsValue>
+>;
 export type ItemsForLocationsValue = {
-  itemName: string
-}
+  itemName: string;
+};
 
 export default class DatabaseState {
-  entrances: Entrances
-  islandsForCharts: IslandsForCharts
-  items: Items
-  locationsChecked: LocationsChecked
-  itemsForLocations: ItemsForLocations
+  entrances: Entrances;
+  islandsForCharts: IslandsForCharts;
+  items: Items;
+  locationsChecked: LocationsChecked;
+  itemsForLocations: ItemsForLocations;
   rsSettings: Settings
 
   constructor() {
@@ -65,61 +80,72 @@ export default class DatabaseState {
     return newState;
   }
 
-  public setItem(userId: string, {
-    itemName,
-    count,
-  }: ItemPayload) {
+  public setItem(userId: string, { itemName, count }: ItemPayload) {
     const newState = this._clone({
       items: true,
     });
 
-    _.set(newState.items, [itemName, userId], { count })
+    _.set(newState.items, [itemName, userId], { count });
 
     return newState;
   }
 
-  public setLocation(userId: string, {
-    generalLocation,
-    detailedLocation,
-    isChecked
-  }: LocationPayload) {
+  public setLocation(
+    userId: string,
+    { generalLocation, detailedLocation, isChecked }: LocationPayload
+  ) {
     const newState = this._clone({
       locationsChecked: true,
     });
 
-    _.set(newState.locationsChecked, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId], { isChecked })
+    _.set(
+      newState.locationsChecked,
+      [
+        DatabaseHelper.getLocationKey(generalLocation, detailedLocation),
+        userId,
+      ],
+      { isChecked }
+    );
 
     return newState;
   }
 
-  public setItemsForLocations(userId: string, {
-    itemName,
-    generalLocation,
-    detailedLocation,
-  }: ItemPayload) {
+  public setItemsForLocations(
+    userId: string,
+    { itemName, generalLocation, detailedLocation }: ItemPayload
+  ) {
     const newState = this._clone({
       itemsForLocations: true,
     });
-    if (itemName){
-      _.set(newState.itemsForLocations, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId], { itemName })
+    if (itemName) {
+      _.set(
+        newState.itemsForLocations,
+        [
+          DatabaseHelper.getLocationKey(generalLocation, detailedLocation),
+          userId,
+        ],
+        { itemName }
+      );
     } else {
-      _.unset(newState.itemsForLocations, [DatabaseHelper.getLocationKey(generalLocation, detailedLocation), userId]);
+      _.unset(newState.itemsForLocations, [
+        DatabaseHelper.getLocationKey(generalLocation, detailedLocation),
+        userId,
+      ]);
     }
 
     return newState;
   }
 
-  public setEntrance(userId: string,
-    {
-      entranceName,
-      exitName
-    }: EntrancePayload) {
+  public setEntrance(
+    userId: string,
+    { entranceName, exitName }: EntrancePayload
+  ) {
     const newState = this._clone({
       entrances: true,
     });
 
     if (entranceName) {
-      _.set(newState.entrances, [exitName, userId], { entranceName })
+      _.set(newState.entrances, [exitName, userId], { entranceName });
     } else {
       _.unset(newState.entrances, [exitName, userId]);
     }
@@ -127,11 +153,10 @@ export default class DatabaseState {
     return newState;
   }
 
-  public setIslandsForCharts(userId: string,
-    {
-      island,
-      chart
-    }: IslandsForChartPayload) {
+  public setIslandsForCharts(
+    userId: string,
+    { island, chart }: IslandsForChartPayload
+  ) {
     const newState = this._clone({
       islandsForCharts: true,
     });
@@ -167,11 +192,11 @@ export default class DatabaseState {
     itemsForLocations: cloneItemsForLocations,
     rsSettings: cloneRsSettings,
   }: {
-    entrances?: boolean,
-    islandsForCharts?: boolean,
-    items?: boolean,
-    locationsChecked?: boolean,
-    itemsForLocations?: boolean,
+    entrances?: boolean;
+    islandsForCharts?: boolean;
+    items?: boolean;
+    locationsChecked?: boolean;
+    itemsForLocations?: boolean;
     rsSettings?: boolean,
   }) {
     const newState = new DatabaseState();
@@ -182,9 +207,7 @@ export default class DatabaseState {
     newState.islandsForCharts = cloneIslandsForCharts
       ? _.clone(this.islandsForCharts)
       : this.islandsForCharts;
-    newState.items = cloneItems
-      ? _.clone(this.items)
-      : this.items;
+    newState.items = cloneItems ? _.clone(this.items) : this.items;
     newState.locationsChecked = cloneLocationsChecked
       ? _.cloneDeep(this.locationsChecked)
       : this.locationsChecked;

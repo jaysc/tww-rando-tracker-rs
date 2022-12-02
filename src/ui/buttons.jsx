@@ -30,9 +30,13 @@ class Buttons extends React.PureComponent {
       onlyProgressLocations,
       settingsWindowOpen,
       startingItemSelection,
+      hideCoopItemLocations,
+      hideCoopMiscItemLocations,
       trackSpheres,
       toggleChartList,
       toggleColorPicker,
+      toggleCoopItemLocations,
+      toggleCoopMiscItemLocations,
       toggleDisableLogic,
       toggleEntrancesList,
       toggleOnlyProgressLocations,
@@ -95,11 +99,26 @@ class Buttons extends React.PureComponent {
           Show Location Logic
         </button>
         <button
+          disabled
           onClick={toggleTrackSpheres}
           type="button"
         >
-          <input type="checkbox" className="button-checkbox" checked={trackSpheres} readOnly />
+          <input disabled type="checkbox" className="button-checkbox" checked={trackSpheres} readOnly />
           Track Spheres
+        </button>
+        <button
+          onClick={toggleCoopItemLocations}
+          type="button"
+        >
+          <input type="checkbox" className="button-checkbox" checked={hideCoopItemLocations} readOnly />
+          Hide Coop Item Locations from Count
+        </button>
+        <button
+          onClick={toggleCoopMiscItemLocations}
+          type="button"
+        >
+          <input type="checkbox" className="button-checkbox" checked={!hideCoopMiscItemLocations} readOnly />
+          Hide Coop Charts
         </button>
         <button
           onClick={toggleColorPicker}
@@ -142,9 +161,13 @@ Buttons.propTypes = {
   saveData: PropTypes.string.isRequired,
   settingsWindowOpen: PropTypes.bool.isRequired,
   startingItemSelection: PropTypes.bool.isRequired,
+  hideCoopItemLocations: PropTypes.bool.isRequired,
+  hideCoopMiscItemLocations: PropTypes.bool.isRequired,
   trackSpheres: PropTypes.bool.isRequired,
   toggleChartList: PropTypes.func.isRequired,
   toggleColorPicker: PropTypes.func.isRequired,
+  toggleCoopItemLocations: PropTypes.func.isRequired,
+  toggleCoopMiscItemLocations: PropTypes.func.isRequired,
   toggleDisableLogic: PropTypes.func.isRequired,
   toggleEntrancesList: PropTypes.func.isRequired,
   toggleOnlyProgressLocations: PropTypes.func.isRequired,

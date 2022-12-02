@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import DatabaseHelper from '../services/database-helper.ts';
-import DatabaseLogic from '../services/database-logic.ts';
 import DatabaseState from '../services/database-state.ts';
 import Locations from '../services/locations';
 import LogicCalculation from '../services/logic-calculation';
@@ -156,7 +155,6 @@ class DetailedLocationsTable extends React.PureComponent {
     } = locationInfo;
 
     const {
-      databaseLogic,
       databaseState,
       disableLogic,
       openedLocation,
@@ -183,7 +181,6 @@ class DetailedLocationsTable extends React.PureComponent {
     }
 
     const databaseItems = DatabaseHelper.getItemForLocation(
-      databaseLogic,
       databaseState,
       openedLocation,
       location,
@@ -243,13 +240,13 @@ class DetailedLocationsTable extends React.PureComponent {
     const {
       clearOpenedMenus,
       clearRaceModeBannedLocations,
-      databaseLogic,
       databaseState,
       disableLogic,
       logic,
       onlyProgressLocations,
       openedLocation,
       openedLocationIsDungeon,
+      showCoopItemSettings,
     } = this.props;
 
     const backgroundImage = _.get(Images.IMAGES, [
@@ -260,11 +257,11 @@ class DetailedLocationsTable extends React.PureComponent {
     const detailedLocations = logic.locationsList(
       openedLocation,
       {
-        databaseLogic,
         databaseState,
         disableLogic,
         isDungeon: openedLocationIsDungeon,
         onlyProgressLocations,
+        showCoopItemSettings,
       },
     );
 
@@ -315,13 +312,15 @@ class DetailedLocationsTable extends React.PureComponent {
 DetailedLocationsTable.propTypes = {
   clearOpenedMenus: PropTypes.func.isRequired,
   clearRaceModeBannedLocations: PropTypes.func.isRequired,
-  databaseLogic: PropTypes.instanceOf(DatabaseLogic).isRequired,
   databaseState: PropTypes.instanceOf(DatabaseState).isRequired,
   disableLogic: PropTypes.bool.isRequired,
   logic: PropTypes.instanceOf(LogicCalculation).isRequired,
   onlyProgressLocations: PropTypes.bool.isRequired,
   openedLocation: PropTypes.string.isRequired,
   openedLocationIsDungeon: PropTypes.bool.isRequired,
+  showCoopItemSettings: PropTypes.shape({
+    charts: PropTypes.bool.isRequired,
+  }).isRequired,
   spheres: PropTypes.instanceOf(Spheres).isRequired,
   trackerState: PropTypes.instanceOf(TrackerState).isRequired,
   trackSpheres: PropTypes.bool.isRequired,

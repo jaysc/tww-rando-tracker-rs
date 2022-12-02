@@ -2,7 +2,6 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import DatabaseLogic from '../services/database-logic.ts';
 import DatabaseState from '../services/database-state.ts';
 import LogicCalculation from '../services/logic-calculation';
 import Spheres from '../services/spheres';
@@ -78,7 +77,6 @@ class LocationsTable extends React.PureComponent {
       chartListOpen,
       clearOpenedMenus,
       clearRaceModeBannedLocations,
-      databaseLogic,
       databaseState,
       decrementItem,
       disableLogic,
@@ -90,6 +88,8 @@ class LocationsTable extends React.PureComponent {
       openedExit,
       openedLocation,
       openedLocationIsDungeon,
+      hideCoopItemLocations,
+      showCoopItemSettings,
       spheres,
       toggleLocationChecked,
       trackerState,
@@ -116,7 +116,6 @@ class LocationsTable extends React.PureComponent {
       chartElement = (
         <ChartList
           clearOpenedMenus={clearOpenedMenus}
-          databaseLogic={databaseLogic}
           databaseState={databaseState}
           incrementItem={incrementItem}
           openedChartForIsland={openedChartForIsland}
@@ -152,13 +151,13 @@ class LocationsTable extends React.PureComponent {
         <DetailedLocationsTable
           clearOpenedMenus={clearOpenedMenus}
           clearRaceModeBannedLocations={clearRaceModeBannedLocations}
-          databaseLogic={databaseLogic}
           databaseState={databaseState}
           disableLogic={disableLogic}
           logic={logic}
           onlyProgressLocations={onlyProgressLocations}
           openedLocation={openedLocation}
           openedLocationIsDungeon={openedLocationIsDungeon}
+          showCoopItemSettings={showCoopItemSettings}
           spheres={spheres}
           trackerState={trackerState}
           trackSpheres={trackSpheres}
@@ -171,7 +170,6 @@ class LocationsTable extends React.PureComponent {
           clearSelectedChartForIsland={this.clearSelectedChartForIsland}
           clearSelectedItem={this.clearSelectedItem}
           clearSelectedLocation={this.clearSelectedLocation}
-          databaseLogic={databaseLogic}
           databaseState={databaseState}
           decrementItem={decrementItem}
           disableLogic={disableLogic}
@@ -182,6 +180,8 @@ class LocationsTable extends React.PureComponent {
           setSelectedExit={this.setSelectedExit}
           setSelectedItem={this.setSelectedItem}
           setSelectedLocation={this.setSelectedLocation}
+          hideCoopItemLocations={hideCoopItemLocations}
+          showCoopItemSettings={showCoopItemSettings}
           spheres={spheres}
           trackerState={trackerState}
           trackSpheres={trackSpheres}
@@ -199,8 +199,8 @@ class LocationsTable extends React.PureComponent {
         {chartElement}
         <MapInfo
           disableLogic={disableLogic}
-          databaseLogic={databaseLogic}
           databaseState={databaseState}
+          hideCoopItemLocations={hideCoopItemLocations}
           logic={logic}
           onlyProgressLocations={onlyProgressLocations}
           selectedChartForIsland={selectedChartForIsland}
@@ -208,6 +208,7 @@ class LocationsTable extends React.PureComponent {
           selectedItem={selectedItem}
           selectedLocation={selectedLocation}
           selectedLocationIsDungeon={selectedLocationIsDungeon}
+          showCoopItemSettings={showCoopItemSettings}
           trackerState={trackerState}
         />
       </div>
@@ -217,13 +218,14 @@ class LocationsTable extends React.PureComponent {
   render() {
     const {
       backgroundColor,
-      databaseLogic,
       databaseState,
       decrementItem,
       disableLogic,
+      hideCoopItemLocations,
       incrementItem,
       logic,
       onlyProgressLocations,
+      showCoopItemSettings,
       spheres,
       trackerState,
       trackSpheres,
@@ -239,16 +241,17 @@ class LocationsTable extends React.PureComponent {
           backgroundColor={backgroundColor}
           clearSelectedItem={this.clearSelectedItem}
           clearSelectedLocation={this.clearSelectedLocation}
-          databaseLogic={databaseLogic}
           databaseState={databaseState}
           decrementItem={decrementItem}
           disableLogic={disableLogic}
+          hideCoopItemLocations={hideCoopItemLocations}
           incrementItem={incrementItem}
           logic={logic}
           onlyProgressLocations={onlyProgressLocations}
           setSelectedExit={this.setSelectedExit}
           setSelectedItem={this.setSelectedItem}
           setSelectedLocation={this.setSelectedLocation}
+          showCoopItemSettings={showCoopItemSettings}
           spheres={spheres}
           trackerState={trackerState}
           trackSpheres={trackSpheres}
@@ -274,11 +277,11 @@ LocationsTable.propTypes = {
   chartListOpen: PropTypes.bool.isRequired,
   clearOpenedMenus: PropTypes.func.isRequired,
   clearRaceModeBannedLocations: PropTypes.func.isRequired,
-  databaseLogic: PropTypes.instanceOf(DatabaseLogic).isRequired,
   databaseState: PropTypes.instanceOf(DatabaseState).isRequired,
   decrementItem: PropTypes.func.isRequired,
   disableLogic: PropTypes.bool.isRequired,
   entrancesListOpen: PropTypes.bool.isRequired,
+  hideCoopItemLocations: PropTypes.bool.isRequired,
   incrementItem: PropTypes.func.isRequired,
   logic: PropTypes.instanceOf(LogicCalculation).isRequired,
   onlyProgressLocations: PropTypes.bool.isRequired,
@@ -286,6 +289,9 @@ LocationsTable.propTypes = {
   openedExit: PropTypes.string,
   openedLocation: PropTypes.string,
   openedLocationIsDungeon: PropTypes.bool,
+  showCoopItemSettings: PropTypes.shape({
+    charts: PropTypes.bool.isRequired,
+  }).isRequired,
   spheres: PropTypes.instanceOf(Spheres).isRequired,
   toggleLocationChecked: PropTypes.func.isRequired,
   trackerState: PropTypes.instanceOf(TrackerState).isRequired,

@@ -5,10 +5,10 @@ import Permalink from './permalink';
 import Settings from './settings';
 
 describe('DatabaseHelper', () => {
-  const databaseLogic = new DatabaseLogic({});
+  DatabaseLogic.initialize({});
   const effectiveId = 'effective-user-id';
 
-  databaseLogic.userId = effectiveId;
+  DatabaseLogic.userId = effectiveId;
 
   describe('getLocationKey', () => {
     test('returns the correct key', () => {
@@ -35,7 +35,7 @@ describe('DatabaseHelper', () => {
         },
       };
 
-      expect(DatabaseHelper.getMaxCount(databaseLogic, databaseState, 'bombs')).toEqual(0);
+      expect(DatabaseHelper.getMaxCount(databaseState, 'bombs')).toEqual(0);
     });
 
     test('returns 0 when item not found', () => {
@@ -48,7 +48,7 @@ describe('DatabaseHelper', () => {
         },
       };
 
-      expect(DatabaseHelper.getMaxCount(databaseLogic, databaseState, 'bombs')).toEqual(0);
+      expect(DatabaseHelper.getMaxCount(databaseState, 'bombs')).toEqual(0);
     });
 
     test('returns maxCount when userId is not effectiveId', () => {
@@ -78,7 +78,7 @@ describe('DatabaseHelper', () => {
         },
       };
 
-      expect(DatabaseHelper.getMaxCount(databaseLogic, databaseState, 'bombs')).toEqual(200);
+      expect(DatabaseHelper.getMaxCount(databaseState, 'bombs')).toEqual(200);
     });
   });
 
@@ -101,7 +101,7 @@ describe('DatabaseHelper', () => {
         },
       };
 
-      expect(DatabaseHelper.getLocationsForItem(databaseLogic, databaseState, 'bombs'))
+      expect(DatabaseHelper.getLocationsForItem(databaseState, 'bombs'))
         .toEqual([]);
     });
 
@@ -126,7 +126,7 @@ describe('DatabaseHelper', () => {
         },
       };
 
-      expect(DatabaseHelper.getLocationsForItem(databaseLogic, databaseState, 'bombs'))
+      expect(DatabaseHelper.getLocationsForItem(databaseState, 'bombs'))
         .toEqual([{ generalLocation: 'generalLocation', detailedLocation: 'detailedLocation' }]);
     });
   });
@@ -151,7 +151,6 @@ describe('DatabaseHelper', () => {
       };
 
       expect(DatabaseHelper.getItemForLocation(
-        databaseLogic,
         databaseState,
         'generalLocation',
         'detailedLocation',
@@ -178,7 +177,6 @@ describe('DatabaseHelper', () => {
       };
 
       expect(DatabaseHelper.getItemForLocation(
-        databaseLogic,
         databaseState,
         'random1',
         'random2',
@@ -211,12 +209,50 @@ describe('DatabaseHelper', () => {
       };
 
       expect(DatabaseHelper.getItemForLocation(
-        databaseLogic,
         databaseState,
         'newGeneral',
         'newDetailed',
+        {
+          showCoopItemSettings: {
+            charts: true,
+          },
+        },
       ))
         .toEqual(['leaf', 'bottle']);
+    });
+  });
+
+  describe('checkCoopItemSettings', () => {
+    describe('when show charts', () => {
+      const coopItemSettings = {
+        charts: true,
+      };
+
+      test('returns true when chart', () => {
+        const result = DatabaseHelper.checkCoopItemSettings(coopItemSettings, 'Treasure Chart 5');
+        expect(result).toBe(true);
+      });
+
+      test('returns true when not a chart', () => {
+        const result = DatabaseHelper.checkCoopItemSettings(coopItemSettings, 'Bombs');
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('when hide charts', () => {
+      const coopItemSettings = {
+        charts: false,
+      };
+
+      test('returns true when chart', () => {
+        const result = DatabaseHelper.checkCoopItemSettings(coopItemSettings, 'Treasure Chart 5');
+        expect(result).toBe(false);
+      });
+
+      test('returns true when not a chart', () => {
+        const result = DatabaseHelper.checkCoopItemSettings(coopItemSettings, 'Bombs');
+        expect(result).toBe(true);
+      });
     });
   });
 
@@ -233,10 +269,14 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
+          {
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(true);
       });
@@ -252,10 +292,14 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'generalLocation',
           'detailedLocation',
+          {
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(false);
       });
@@ -273,10 +317,14 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
+          {
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(false);
       });
@@ -293,10 +341,14 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
+          {
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(false);
       });
@@ -314,10 +366,14 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
+          {
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(false);
       });
@@ -340,10 +396,14 @@ describe('DatabaseHelper', () => {
           };
 
           expect(DatabaseHelper.hasCoopItem(
-            databaseLogic,
             databaseState,
             'newGeneral',
             'doNotHaveItem',
+            {
+              showCoopItemSettings: {
+                charts: true,
+              },
+            },
           ))
             .toEqual(true);
         });
@@ -367,10 +427,14 @@ describe('DatabaseHelper', () => {
           };
 
           expect(DatabaseHelper.hasCoopItem(
-            databaseLogic,
             databaseState,
             'newGeneral',
             'doNotHaveItem',
+            {
+              showCoopItemSettings: {
+                charts: true,
+              },
+            },
           ))
             .toEqual(true);
         });
@@ -394,10 +458,14 @@ describe('DatabaseHelper', () => {
           };
 
           expect(DatabaseHelper.hasCoopItem(
-            databaseLogic,
             databaseState,
             'newGeneral',
             'doNotHaveItem',
+            {
+              showCoopItemSettings: {
+                charts: true,
+              },
+            },
           ))
             .toEqual(true);
         });
@@ -418,11 +486,15 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
-          true,
+          {
+            disableLogic: true,
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(true);
       });
@@ -440,11 +512,15 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
-          true,
+          {
+            disableLogic: true,
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(true);
       });
@@ -462,11 +538,15 @@ describe('DatabaseHelper', () => {
         };
 
         expect(DatabaseHelper.hasCoopItem(
-          databaseLogic,
           databaseState,
           'newGeneral',
           'doNotHaveItem',
-          true,
+          {
+            disableLogic: true,
+            showCoopItemSettings: {
+              charts: true,
+            },
+          },
         ))
           .toEqual(true);
       });
@@ -502,8 +582,42 @@ describe('DatabaseHelper', () => {
         databaseState,
         'newGeneral',
         'newDetailed',
+        {
+          showCoopItemSettings: {
+            charts: true,
+          },
+        },
       ))
         .toEqual(true);
+    });
+  });
+
+  describe('numOfCheckedLocations', () => {
+    test('returns the correct number of coop checks', () => {
+      const databaseState = new DatabaseState();
+      databaseState.locationsChecked = {
+        'generalLocation#detailedLocation': {
+          [effectiveId]: {
+            isChecked: true,
+          },
+        },
+        'newGeneral#newDetailed': {
+          [effectiveId]: {
+            isChecked: true,
+          },
+          user1: {
+            isChecked: true,
+          },
+          user2: {
+            isChecked: true,
+          },
+          user3: {
+            isChecked: true,
+          },
+        },
+      };
+
+      expect(DatabaseHelper.numOfCheckedLocations(databaseState)).toEqual(2);
     });
   });
 });

@@ -14,6 +14,7 @@ import TrackerController from '../services/tracker-controller';
 
 import Buttons from './buttons';
 import ColorPickerWindow from './color-picker-window';
+import CoopStatus from './coop-status';
 import Images from './images';
 import ItemsTable from './items-table';
 import LocationsTable from './locations-table';
@@ -22,7 +23,6 @@ import SphereTracking from './sphere-tracking';
 import Statistics from './statistics';
 import Storage from './storage';
 import 'react-toastify/dist/ReactToastify.css';
-import Tooltip from './tooltip';
 
 class Tracker extends React.PureComponent {
   constructor(props) {
@@ -54,6 +54,10 @@ class Tracker extends React.PureComponent {
       openedLocationIsDungeon: null,
       settingsWindowOpen: false,
       startingItemSelection: false,
+      hideCoopItemLocations: false,
+      showCoopItemSettings: {
+        charts: true,
+      },
       trackSpheres: true,
     };
 
@@ -66,6 +70,8 @@ class Tracker extends React.PureComponent {
     this.incrementItem = this.incrementItem.bind(this);
     this.incrementStartingItem = this.incrementStartingItem.bind(this);
     this.toggleChartList = this.toggleChartList.bind(this);
+    this.toggleCoopItemLocations = this.toggleCoopItemLocations.bind(this);
+    this.toggleCoopMiscItemLocations = this.toggleCoopMiscItemLocations.bind(this);
     this.toggleColorPicker = this.toggleColorPicker.bind(this);
     this.toggleDisableLogic = this.toggleDisableLogic.bind(this);
     this.toggleEntrancesList = this.toggleEntrancesList.bind(this);
@@ -124,9 +130,8 @@ class Tracker extends React.PureComponent {
       }
     }
 
-    let databaseLogic;
     if (gameId) {
-      databaseLogic = new DatabaseLogic({
+      DatabaseLogic.initialize({
         gameId,
         initialData,
         mode,
@@ -158,7 +163,6 @@ class Tracker extends React.PureComponent {
     } = initialData;
 
     this.setState({
-      databaseLogic,
       databaseState: new DatabaseState(),
       isLoading: false,
       logic,
@@ -167,16 +171,14 @@ class Tracker extends React.PureComponent {
       trackerState,
     });
 
-    if (databaseLogic) {
-      databaseLogic.connect();
-    }
+    DatabaseLogic.connect();
   }
 
   databaseUpdateUsername(event) {
-    const { databaseLogic, databaseStats } = this.state;
+    const { databaseStats } = this.state;
     const newName = event.target.value;
-    if (newName !== _.get(databaseStats.users, databaseLogic.userId)) {
-      databaseLogic.updateUsername(event.target.value);
+    if (newName !== _.get(databaseStats.users, DatabaseLogic.userId)) {
+      DatabaseLogic.updateUsername(event.target.value);
     }
   }
 
@@ -204,10 +206,10 @@ class Tracker extends React.PureComponent {
 
   async databaseInitialLoad(data) {
     const {
-      databaseLogic, databaseState, databaseStats, trackerState,
+      databaseStats, databaseState, trackerState,
     } = this.state;
 
-    const newDatabaseState = databaseState.setState(data, databaseLogic);
+    const newDatabaseState = databaseState.setState(data);
 
     let newTrackerState = trackerState._clone({
       entrances: true,
@@ -218,7 +220,7 @@ class Tracker extends React.PureComponent {
     });
 
     _.forEach(newDatabaseState.entrances, (entranceData, exitName) => {
-      const { entranceName } = databaseLogic.getValue(entranceData);
+      const { entranceName } = DatabaseLogic.getValue(entranceData);
 
       if (entranceName) {
         _.set(newTrackerState.entrances, exitName, entranceName);
@@ -226,7 +228,7 @@ class Tracker extends React.PureComponent {
     });
 
     _.forEach(newDatabaseState.islandsForCharts, (chartData, chart) => {
-      const { island } = databaseLogic.getValue(chartData);
+      const { island } = DatabaseLogic.getValue(chartData);
 
       if (island) {
         _.set(newTrackerState.islandsForCharts, chart, island);
@@ -234,7 +236,7 @@ class Tracker extends React.PureComponent {
     });
 
     _.forEach(newDatabaseState.items, (itemData, itemName) => {
-      const { count } = databaseLogic.getValue(itemData);
+      const { count } = DatabaseLogic.getValue(itemData);
 
       if (count) {
         _.set(newTrackerState.items, itemName, count ?? 0);
@@ -243,7 +245,7 @@ class Tracker extends React.PureComponent {
 
     _.forEach(newDatabaseState.locationsChecked, (locationData, location) => {
       const [generalLocation, detailedLocation] = location.split('#');
-      const { isChecked } = databaseLogic.getValue(locationData);
+      const { isChecked } = DatabaseLogic.getValue(locationData);
       if (isChecked) {
         _.set(
           newTrackerState.locationsChecked,
@@ -255,7 +257,7 @@ class Tracker extends React.PureComponent {
 
     _.forEach(newDatabaseState.itemsForLocations, (locationData, location) => {
       const [generalLocation, detailedLocation] = location.split('#');
-      const { itemName } = databaseLogic.getValue(locationData);
+      const { itemName } = DatabaseLogic.getValue(locationData);
       if (itemName) {
         newTrackerState = newTrackerState.setItemForLocation(
           itemName,
@@ -293,7 +295,7 @@ class Tracker extends React.PureComponent {
   }
 
   async databaseUpdate(data) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
 
     const newTrackerState = trackerState._clone({
       entrances: true,
@@ -383,7 +385,7 @@ class Tracker extends React.PureComponent {
       );
     }
 
-    if (data.userId === databaseLogic.userId || data.userId === databaseLogic.roomId) {
+    if (data.userId === DatabaseLogic.userId || data.userId === DatabaseLogic.roomId) {
       if (data.type === SaveDataType.ENTRANCE) {
         const { entranceName, exitName } = data;
 
@@ -396,7 +398,7 @@ class Tracker extends React.PureComponent {
         if (newTrackerState.getItemValue(chart) === 1) {
           const chartForIsland = LogicHelper.chartForIslandName(island);
           _.set(newTrackerState.items, chartForIsland, 1);
-          newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+          newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
             itemName: chartForIsland,
             count: 1,
           });
@@ -443,7 +445,6 @@ class Tracker extends React.PureComponent {
 
   incrementItem(itemName) {
     const {
-      databaseLogic,
       databaseState,
       lastLocation,
       trackerState,
@@ -465,16 +466,14 @@ class Tracker extends React.PureComponent {
     }
 
     let newDatabaseState = databaseState;
-    if (databaseLogic) {
-      const { generalLocation, detailedLocation } = lastLocation ?? {};
+    const { generalLocation, detailedLocation } = lastLocation ?? {};
 
-      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
-        itemName,
-        count: newTrackerState.getItemValue(itemName),
-        generalLocation,
-        detailedLocation,
-      });
-    }
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
+      itemName,
+      count: newTrackerState.getItemValue(itemName),
+      generalLocation,
+      detailedLocation,
+    });
 
     this.updateTrackerState(newTrackerState, newDatabaseState);
   }
@@ -489,17 +488,15 @@ class Tracker extends React.PureComponent {
   }
 
   decrementItem(itemName) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
 
     const newTrackerState = trackerState.decrementItem(itemName);
 
     let newDatabaseState = databaseState;
-    if (databaseLogic) {
-      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
-        itemName,
-        count: newTrackerState.getItemValue(itemName),
-      });
-    }
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
+      itemName,
+      count: newTrackerState.getItemValue(itemName),
+    });
 
     this.updateTrackerState(newTrackerState, newDatabaseState);
   }
@@ -514,12 +511,12 @@ class Tracker extends React.PureComponent {
   }
 
   toggleLocationChecked(generalLocation, detailedLocation, databaseItems) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
 
     let newTrackerState = trackerState.toggleLocationChecked(generalLocation, detailedLocation);
     let newDatabaseState = databaseState;
 
-    newDatabaseState = databaseLogic.setLocation(
+    newDatabaseState = DatabaseLogic.setLocation(
       newDatabaseState,
       {
         generalLocation,
@@ -548,7 +545,7 @@ class Tracker extends React.PureComponent {
               const chartForIsland = LogicHelper.chartForIslandName(island);
 
               newTrackerState = newTrackerState.incrementItem(chartForIsland);
-              newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+              newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
                 itemName: chartForIsland,
                 count: newTrackerState.getItemValue(itemName),
               });
@@ -562,7 +559,7 @@ class Tracker extends React.PureComponent {
           detailedLocation,
         );
 
-        newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+        newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
           itemName,
           count: newTrackerState.getItemValue(itemName),
           generalLocation,
@@ -574,7 +571,7 @@ class Tracker extends React.PureComponent {
 
       newTrackerState = newTrackerState.unsetItemForLocation(generalLocation, detailedLocation);
 
-      newDatabaseState = databaseLogic.setItemsForLocations(newDatabaseState, {
+      newDatabaseState = DatabaseLogic.setItemsForLocations(newDatabaseState, {
         itemName: '',
         generalLocation,
         detailedLocation,
@@ -585,7 +582,7 @@ class Tracker extends React.PureComponent {
   }
 
   clearRaceModeBannedLocations(dungeonName) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
 
     let newTrackerState = trackerState;
     let newDatabaseState = databaseState;
@@ -596,7 +593,7 @@ class Tracker extends React.PureComponent {
       if (!newTrackerState.isLocationChecked(generalLocation, detailedLocation)) {
         newTrackerState = newTrackerState.toggleLocationChecked(generalLocation, detailedLocation);
 
-        newDatabaseState = databaseLogic.setLocation(
+        newDatabaseState = DatabaseLogic.setLocation(
           newDatabaseState,
           { generalLocation, detailedLocation, isChecked: true },
         );
@@ -683,7 +680,7 @@ class Tracker extends React.PureComponent {
   }
 
   unsetExit(dungeonOrCaveName) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
     let newDatabaseState = databaseState;
 
     const entryName = LogicHelper.entryName(dungeonOrCaveName);
@@ -691,13 +688,13 @@ class Tracker extends React.PureComponent {
       .incrementItem(entryName)
       .unsetEntranceForExit(dungeonOrCaveName);
 
-    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
       itemName: entryName,
       count: 0,
       useRoomId: true,
     });
 
-    newDatabaseState = databaseLogic.setEntrance(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setEntrance(newDatabaseState, {
       exitName: dungeonOrCaveName,
     });
 
@@ -705,7 +702,7 @@ class Tracker extends React.PureComponent {
   }
 
   updateEntranceForExit(exitName, entranceName) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
     let newDatabaseState = databaseState;
 
     const entryName = LogicHelper.entryName(exitName);
@@ -713,12 +710,12 @@ class Tracker extends React.PureComponent {
       .incrementItem(entryName)
       .setEntranceForExit(exitName, entranceName);
 
-    newDatabaseState = databaseLogic.setEntrance(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setEntrance(newDatabaseState, {
       exitName,
       entranceName,
       useRoomId: true,
     });
-    newDatabaseState = databaseLogic.setItem(
+    newDatabaseState = DatabaseLogic.setItem(
       newDatabaseState,
       { count: newTrackerState.getItemValue(entryName), itemName: entryName, useRoomId: true },
     );
@@ -740,7 +737,7 @@ class Tracker extends React.PureComponent {
 
   updateChartMapping(chart, chartForIsland) {
     const {
-      databaseLogic, databaseState, lastLocation, trackerState,
+      databaseState, lastLocation, trackerState,
     } = this.state;
     let newDatabaseState = databaseState;
 
@@ -774,18 +771,18 @@ class Tracker extends React.PureComponent {
       detailedLocation,
     } = lastLocation ?? {};
 
-    newDatabaseState = databaseLogic.setIslandsForCharts(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setIslandsForCharts(newDatabaseState, {
       chart,
       island,
       useRoomId: true,
     });
-    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
       count: newTrackerState.getItemValue(chart),
       itemName: chart,
       generalLocation,
       detailedLocation,
     });
-    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
       count: newTrackerState.getItemValue(chartForIsland),
       itemName: chartForIsland,
     });
@@ -797,7 +794,7 @@ class Tracker extends React.PureComponent {
   // Unset via sector should only remove mapping.
   // Unset via chart-list should remove both mapping and decrement chart.
   unsetChartMapping(chartForIsland, decrementChart) {
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
     let newTrackerState = trackerState;
     let newDatabaseState = databaseState;
 
@@ -808,7 +805,7 @@ class Tracker extends React.PureComponent {
       newTrackerState = newTrackerState
         .decrementItem(chart);
 
-      newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+      newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
         itemName: chart,
         count: newTrackerState.getItemValue(chart),
       });
@@ -817,7 +814,7 @@ class Tracker extends React.PureComponent {
     newTrackerState = newTrackerState
       .decrementItem(chartForIsland)
       .unsetChartMapping(chartForIsland);
-    newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
       itemName: chartForIsland,
       count: newTrackerState.getItemValue(chartForIsland),
     });
@@ -825,7 +822,7 @@ class Tracker extends React.PureComponent {
     const island = LogicHelper.islandFromChartForIsland(chartForIsland);
     const chart = trackerState.getChartFromChartMapping(island);
 
-    newDatabaseState = databaseLogic.setIslandsForCharts(newDatabaseState, {
+    newDatabaseState = DatabaseLogic.setIslandsForCharts(newDatabaseState, {
       chart,
       island: null,
       useRoomId: true,
@@ -943,6 +940,28 @@ class Tracker extends React.PureComponent {
     this.updatePreferences({ trackSpheres: !trackSpheres });
   }
 
+  toggleCoopItemLocations() {
+    const { hideCoopItemLocations } = this.state;
+
+    this.setState({
+      hideCoopItemLocations: !hideCoopItemLocations,
+    });
+  }
+
+  toggleCoopMiscItemLocations() {
+    const { showCoopItemSettings } = this.state;
+
+    const newShowCoopItemSettings = _.merge(
+      {},
+      showCoopItemSettings,
+      { charts: !showCoopItemSettings.charts },
+    );
+
+    this.setState({
+      showCoopItemSettings: newShowCoopItemSettings,
+    });
+  }
+
   unsetLastLocation() {
     this.setState({ lastLocation: null });
   }
@@ -1009,7 +1028,6 @@ class Tracker extends React.PureComponent {
       chartListOpen,
       colorPickerOpen,
       colors,
-      databaseLogic,
       databaseState,
       databaseStats,
       disableLogic,
@@ -1025,6 +1043,8 @@ class Tracker extends React.PureComponent {
       saveData,
       settingsWindowOpen,
       startingItemSelection,
+      hideCoopItemLocations,
+      showCoopItemSettings,
       spheres,
       trackerState,
       trackSpheres,
@@ -1054,7 +1074,6 @@ class Tracker extends React.PureComponent {
             <ItemsTable
               backgroundColor={itemsTableBackground}
               changedStartingItems={changedStartingItems}
-              databaseLogic={databaseLogic}
               databaseState={databaseState}
               decrementItem={this.decrementItem}
               decrementStartingItem={this.decrementStartingItem}
@@ -1070,7 +1089,6 @@ class Tracker extends React.PureComponent {
               chartListOpen={chartListOpen}
               clearOpenedMenus={this.clearOpenedMenus}
               clearRaceModeBannedLocations={this.clearRaceModeBannedLocations}
-              databaseLogic={databaseLogic}
               databaseState={databaseState}
               decrementItem={this.decrementItem}
               disableLogic={disableLogic}
@@ -1082,6 +1100,8 @@ class Tracker extends React.PureComponent {
               openedExit={openedExit}
               openedLocation={openedLocation}
               openedLocationIsDungeon={openedLocationIsDungeon}
+              hideCoopItemLocations={hideCoopItemLocations}
+              showCoopItemSettings={showCoopItemSettings}
               spheres={spheres}
               toggleLocationChecked={this.toggleLocationChecked}
               trackerState={trackerState}
@@ -1096,6 +1116,7 @@ class Tracker extends React.PureComponent {
             />
             <Statistics
               backgroundColor={statisticsBackground}
+              databaseState={databaseState}
               disableLogic={disableLogic}
               logic={logic}
               onlyProgressLocations={onlyProgressLocations}
@@ -1125,54 +1146,11 @@ class Tracker extends React.PureComponent {
               updateLogic={this.updateLogic}
             />
           )}
-          <div className="coop-status-box">
-            <div className="coop-status">
-              Server status:&nbsp;
-              {databaseStats.connected ? <div className="connected">Connected</div>
-                : <div className="disconnected">Disconnected </div>}
-            </div>
-            <div className="coop-status">
-              Username:&nbsp;
-              <input
-                type="text"
-                key={Math.random()}
-                onBlur={this.databaseUpdateUsername}
-                defaultValue={_.get(databaseStats.users, databaseLogic.userId, '')}
-              />
-            </div>
-            <div className="coop-status">
-              Number of users:&nbsp;
-              <div className="connected">
-                <Tooltip tooltipContent={_.size(databaseStats.users) > 0
-                  ? (
-                    <div className="tooltip">
-                      <div className="tooltip-title">Connected players</div>
-                      <ul>
-                        {_.map(
-                          databaseStats.users,
-                          (name, userId) => <li key={userId}>{name}</li>,
-                        )}
-                      </ul>
-                    </div>
-
-                  )
-                  : null}
-                >
-                  <>{_.size(databaseStats.users)}</>
-                </Tooltip>
-
-              </div>
-            </div>
-            <div className="coop-status">
-              Mode:&nbsp;
-              <div className="connected">
-                {databaseLogic.mode}
-              </div>
-            </div>
-          </div>
+          <CoopStatus
+            databaseStats={databaseStats}
+          />
           <Buttons
             colorPickerOpen={colorPickerOpen}
-            databaseLogic={databaseLogic}
             databaseStats={databaseStats}
             disableLogic={disableLogic}
             chartListOpen={chartListOpen}
@@ -1181,9 +1159,13 @@ class Tracker extends React.PureComponent {
             saveData={saveData}
             settingsWindowOpen={settingsWindowOpen}
             startingItemSelection={startingItemSelection}
+            hideCoopItemLocations={hideCoopItemLocations}
+            hideCoopMiscItemLocations={showCoopItemSettings.charts}
             trackSpheres={trackSpheres}
             toggleChartList={this.toggleChartList}
             toggleColorPicker={this.toggleColorPicker}
+            toggleCoopItemLocations={this.toggleCoopItemLocations}
+            toggleCoopMiscItemLocations={this.toggleCoopMiscItemLocations}
             toggleDisableLogic={this.toggleDisableLogic}
             toggleEntrancesList={this.toggleEntrancesList}
             toggleOnlyProgressLocations={this.toggleOnlyProgressLocations}

@@ -399,7 +399,7 @@ button:hover:enabled {
   }
 
   .nayrus-pearl {
-    .coop-checked-item::before {
+    .coop-item::before {
       content: '';
       display: inline-block;
       left: 25%;
@@ -1024,7 +1024,7 @@ button:hover:enabled {
   z-index: 100;
 }
 
-.coop-checked-item-chart::before {
+.chart-map-container .coop-item::before {
   content: '';
   display: inline-block;
   width: 18px;
@@ -1037,7 +1037,7 @@ button:hover:enabled {
   z-index: -1;
 }
 
-.coop-checked-item::before {
+.item-tracker .coop-item::before {
   content: '';
   display: inline-block;
   width: 48px;
@@ -1047,11 +1047,12 @@ button:hover:enabled {
   border-radius: 50%;
   background-color: #69b6d5;
   position: absolute;
+  z-index: -1;
 }
 
-.coop-checked-dungeon,
-.coop-checked-dungeon .tooltip-wrapper {
-  .item-container::before {
+.dungeon-item,
+.dungeon-item .tooltip-wrapper {
+  .item-container.coop-item::before {
     content: '';
     display: inline-block;
     width: 24px;
@@ -1063,7 +1064,7 @@ button:hover:enabled {
     position: absolute;
     z-index: -1;
   }
-  .item-container {
+  .item-container.coop-item{
     position: absolute;
     z-index: 1;
   }

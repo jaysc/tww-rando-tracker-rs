@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import DatabaseHelper from '../services/database-helper.ts';
-import DatabaseLogic from '../services/database-logic.ts';
 import DatabaseState from '../services/database-state.ts';
 import LogicCalculation from '../services/logic-calculation';
 import LogicHelper from '../services/logic-helper';
@@ -17,12 +16,13 @@ import KeyDownWrapper from './key-down-wrapper';
 class Sector extends React.PureComponent {
   chestsCounter() {
     const {
-      databaseLogic,
       databaseState,
       disableLogic,
+      hideCoopItemLocations,
       island,
       logic,
       onlyProgressLocations,
+      showCoopItemSettings,
     } = this.props;
 
     const {
@@ -33,8 +33,9 @@ class Sector extends React.PureComponent {
       isDungeon: false,
       onlyProgressLocations,
       disableLogic,
-      databaseLogic,
       databaseState,
+      hideCoopItemLocations,
+      showCoopItemSettings,
     });
 
     const className = `chests-counter ${color}`;
@@ -50,7 +51,6 @@ class Sector extends React.PureComponent {
   chartItem() {
     const {
       clearSelectedItem,
-      databaseLogic,
       databaseState,
       decrementItem,
       incrementItem,
@@ -69,13 +69,11 @@ class Sector extends React.PureComponent {
     const chartCount = trackerState.getItemValue(chartName);
 
     const databaseMaxCount = DatabaseHelper.getMaxCount(
-      databaseLogic,
       databaseState,
       chartName,
     );
 
     const databaseLocations = DatabaseHelper.getLocationsForItem(
-      databaseLogic,
       databaseState,
       chartName,
     );
@@ -88,10 +86,11 @@ class Sector extends React.PureComponent {
     }
 
     return (
-      <div className={`treasure-chart ${databaseMaxCount > chartCount ? 'coop-checked-item-chart' : ''}`}>
+      <div className="treasure-chart">
         <Item
           clearSelectedItem={clearSelectedItem}
           databaseLocations={databaseLocations}
+          databaseMaxCount={databaseMaxCount}
           decrementItem={decrementItem}
           images={chartImages}
           incrementItem={incrementItem}
@@ -109,7 +108,6 @@ class Sector extends React.PureComponent {
     const {
       clearSelectedChartForIsland,
       clearSelectedLocation,
-      databaseLogic,
       databaseState,
       island,
       setSelectedChartForIsland,
@@ -127,20 +125,23 @@ class Sector extends React.PureComponent {
     const chartImages = _.get(Images.IMAGES, ['CHARTS', 'Treasure']);
 
     const databaseMaxCount = DatabaseHelper.getMaxCount(
-      databaseLogic,
       databaseState,
       chartForIsland,
     );
 
-    const databaseLocations = DatabaseHelper.getLocationsForItem(
-      databaseLogic,
-      databaseState,
-      chartForIsland,
-    );
+    const chartItem = trackerState.getChartFromChartMapping(island);
+
+    let databaseLocations = [];
+    if (!_.isNil(chartItem)) {
+      databaseLocations = DatabaseHelper.getLocationsForItem(
+        databaseState,
+        chartItem,
+      );
+    }
 
     let locations = [];
     if (trackSpheres) {
-      locations = trackerState.getLocationsForItem(chartForIsland);
+      locations = trackerState.getLocationsForItem(chartItem);
     }
 
     const updateOpenedChartForIslandFunc = () => {
@@ -155,10 +156,11 @@ class Sector extends React.PureComponent {
     };
 
     return (
-      <div className={`treasure-chart ${databaseMaxCount > chartCount ? 'coop-checked-item-chart' : ''}`}>
+      <div className="treasure-chart">
         <Item
           clearSelectedItem={clearSelectedChartForIsland}
           databaseLocations={databaseLocations}
+          databaseMaxCount={databaseMaxCount}
           images={chartImages}
           incrementItem={updateOpenedChartForIslandFunc}
           itemCount={chartCount}
@@ -289,7 +291,6 @@ Sector.propTypes = {
   clearSelectedChartForIsland: PropTypes.func.isRequired,
   clearSelectedItem: PropTypes.func.isRequired,
   clearSelectedLocation: PropTypes.func.isRequired,
-  databaseLogic: PropTypes.instanceOf(DatabaseLogic).isRequired,
   databaseState: PropTypes.instanceOf(DatabaseState).isRequired,
   decrementItem: PropTypes.func.isRequired,
   disableLogic: PropTypes.bool.isRequired,
@@ -301,6 +302,10 @@ Sector.propTypes = {
   setSelectedExit: PropTypes.func.isRequired,
   setSelectedItem: PropTypes.func.isRequired,
   setSelectedLocation: PropTypes.func.isRequired,
+  showCoopItemSettings: PropTypes.shape({
+    charts: PropTypes.bool.isRequired,
+  }).isRequired,
+  hideCoopItemLocations: PropTypes.bool.isRequired,
   spheres: PropTypes.instanceOf(Spheres).isRequired,
   trackerState: PropTypes.instanceOf(TrackerState).isRequired,
   trackSpheres: PropTypes.bool.isRequired,
