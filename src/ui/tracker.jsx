@@ -883,9 +883,9 @@ class Tracker extends React.PureComponent {
   }
 
   toggleSettingsWindow() {
-    const { databaseLogic, settingsWindowOpen } = this.state;
+    const { settingsWindowOpen } = this.state;
 
-    databaseLogic.settingsUpdate(!settingsWindowOpen);
+    DatabaseLogic.settingsUpdate(!settingsWindowOpen);
 
     this.setState({
       settingsWindowOpen: !settingsWindowOpen,
@@ -895,7 +895,6 @@ class Tracker extends React.PureComponent {
   async toggleStartingItemSelection() {
     const {
       changedStartingItems,
-      databaseLogic,
       databaseState,
       startingItemSelection,
       trackerState,
@@ -909,9 +908,9 @@ class Tracker extends React.PureComponent {
 
       let newDatabaseState = databaseState._clone({ items: true });
       _.forEach(changedStartingItems.changedItems, (value, itemName) => {
-        const currentItemValue = _.get(newDatabaseState, ['items', itemName, databaseLogic.userId, 'count'], 0);
+        const currentItemValue = _.get(newDatabaseState, ['items', itemName, DatabaseLogic.userId, 'count'], 0);
         if (value > currentItemValue) {
-          newDatabaseState = databaseLogic.setItem(newDatabaseState, {
+          newDatabaseState = DatabaseLogic.setItem(newDatabaseState, {
             itemName,
             count: newTrackerState.getItemValue(itemName),
             useRoomId: true,
@@ -972,7 +971,7 @@ class Tracker extends React.PureComponent {
 
   async updateLogic(options = {}) {
     const { newCertainSettings, newOptions } = options;
-    const { databaseLogic, databaseState, trackerState } = this.state;
+    const { databaseState, trackerState } = this.state;
 
     if (newOptions) {
       Settings.updateOptions(newOptions);
@@ -984,7 +983,7 @@ class Tracker extends React.PureComponent {
 
     const { logic: newLogic } = TrackerController.refreshState(trackerState);
 
-    const newDatabaseState = databaseLogic.setRsSettings(
+    const newDatabaseState = DatabaseLogic.setRsSettings(
       databaseState,
       {
         settings: {
@@ -1148,6 +1147,7 @@ class Tracker extends React.PureComponent {
           )}
           <CoopStatus
             databaseStats={databaseStats}
+            databaseUpdateUsername={this.databaseUpdateUsername}
           />
           <Buttons
             colorPickerOpen={colorPickerOpen}
