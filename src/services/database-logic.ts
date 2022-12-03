@@ -525,7 +525,7 @@ class DatabaseLogic {
     return newDatabaseState;
   }
 
-  public setRsSettings(databaseState: DatabaseState, rsSettingsPayload: RsSettingsPayload) {
+  public static setRsSettings(databaseState: DatabaseState, rsSettingsPayload: RsSettingsPayload) {
     const { settings } = rsSettingsPayload;
     const message = {
       method: "set",
@@ -687,18 +687,7 @@ class DatabaseLogic {
     this.send(message);
   }
 
-  public settingsUpdate(inProgress: boolean) {
-    const message = {
-      method: "settingsUpdate",
-      payload: {
-        rsSettingsInProgressUserId: inProgress ? this.userId : ''
-      },
-    };
-
-    this.send(message);
-  }
-
-  public settingsUpdate(inProgress: boolean) {
+  public static settingsUpdate(inProgress: boolean) {
     const message = {
       method: "settingsUpdate",
       payload: {
