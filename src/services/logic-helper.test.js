@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import TEST_ITEM_LOCATIONS from '../data/test-item-locations.json';
 import TEST_MACROS from '../data/test-macros.json';
 
@@ -170,9 +172,19 @@ describe('LogicHelper', () => {
 
   describe('ALL_ITEMS', () => {
     test('returns a list of all the items, including entrances, charts, and keys', () => {
-      const allItems = LogicHelper.ALL_ITEMS;
+      expect(LogicHelper.ALL_ITEMS).toMatchSnapshot();
+    });
+  });
 
-      expect(allItems).toMatchSnapshot();
+  describe('ALL_TREASURE_CHARTS', () => {
+    test('returns expected treasure charts', () => {
+      expect(LogicHelper.ALL_TREASURE_CHARTS).toMatchSnapshot();
+    });
+  });
+
+  describe('ALL_TRIFORCE_CHARTS', () => {
+    test('returns expected triforce charts', () => {
+      expect(LogicHelper.ALL_TRIFORCE_CHARTS).toMatchSnapshot();
     });
   });
 
@@ -1070,18 +1082,6 @@ describe('LogicHelper', () => {
     });
   });
 
-  describe('allTreasureCharts', () => {
-    test('returns expected treasure charts', () => {
-      expect(LogicHelper.allTreasureCharts()).toMatchSnapshot();
-    });
-  });
-
-  describe('allTriforceCharts', () => {
-    test('returns expected triforce charts', () => {
-      expect(LogicHelper.allTriforceCharts()).toMatchSnapshot();
-    });
-  });
-
   describe('filterDetailedLocations', () => {
     beforeEach(() => {
       Settings.initializeRaw({
@@ -1096,8 +1096,8 @@ describe('LogicHelper', () => {
         ],
       });
 
-      Locations.initialize(TEST_ITEM_LOCATIONS);
-      Macros.initialize(TEST_MACROS);
+      Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+      Macros.initialize(_.cloneDeep(TEST_MACROS));
 
       LogicTweaks.applyTweaks();
 
@@ -1652,8 +1652,8 @@ describe('LogicHelper', () => {
           startingGear: {},
         });
 
-        Locations.initialize(TEST_ITEM_LOCATIONS);
-        Macros.initialize(TEST_MACROS);
+        Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+        Macros.initialize(_.cloneDeep(TEST_MACROS));
 
         LogicTweaks.applyTweaks();
 
@@ -1718,8 +1718,8 @@ describe('LogicHelper', () => {
           startingGear: {},
         });
 
-        Locations.initialize(TEST_ITEM_LOCATIONS);
-        Macros.initialize(TEST_MACROS);
+        Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+        Macros.initialize(_.cloneDeep(TEST_MACROS));
 
         LogicTweaks.applyTweaks();
 
@@ -1750,8 +1750,8 @@ describe('LogicHelper', () => {
           },
         });
 
-        Locations.initialize(TEST_ITEM_LOCATIONS);
-        Macros.initialize(TEST_MACROS);
+        Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+        Macros.initialize(_.cloneDeep(TEST_MACROS));
 
         LogicTweaks.applyTweaks();
 
@@ -1782,8 +1782,8 @@ describe('LogicHelper', () => {
         startingGear: {},
       });
 
-      Locations.initialize(TEST_ITEM_LOCATIONS);
-      Macros.initialize(TEST_MACROS);
+      Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+      Macros.initialize(_.cloneDeep(TEST_MACROS));
 
       LogicTweaks.applyTweaks();
 
@@ -2178,8 +2178,8 @@ describe('LogicHelper', () => {
         startingGear: {},
       });
 
-      Locations.initialize(TEST_ITEM_LOCATIONS);
-      Macros.initialize(TEST_MACROS);
+      Locations.initialize(_.cloneDeep(TEST_ITEM_LOCATIONS));
+      Macros.initialize(_.cloneDeep(TEST_MACROS));
 
       LogicTweaks.applyTweaks();
 

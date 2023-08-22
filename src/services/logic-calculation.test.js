@@ -38,9 +38,10 @@ describe('LogicCalculation', () => {
       },
       startingGear: {
         [LogicHelper.ITEMS.BALLAD_OF_GALES]: 1,
+        [LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER]: 1,
         [LogicHelper.ITEMS.PROGRESSIVE_SHIELD]: 1,
         [LogicHelper.ITEMS.PROGRESSIVE_SWORD]: 0,
-        [LogicHelper.ITEMS.PROGRESSIVE_MAGIC_METER]: 1,
+        [LogicHelper.ITEMS.SONG_OF_PASSING]: 1,
       },
       flags: [
         Settings.FLAGS.DUNGEON,
@@ -1956,6 +1957,18 @@ describe('LogicCalculation', () => {
 
           expect(isItemAvailable).toEqual(false);
         });
+      });
+    });
+
+    describe('when the requirment is magic', () => {
+      test('returns true', () => {
+        logic = new LogicCalculation(
+          logic.state.incrementItem('Magic Meter Upgrade'),
+        );
+
+        const isItemAvailable = logic._isRequirementMet('Magic Meter Upgrade');
+
+        expect(isItemAvailable).toEqual(true);
       });
     });
 

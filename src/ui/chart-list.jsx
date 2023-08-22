@@ -178,19 +178,21 @@ class ChartList extends React.PureComponent {
 
   render() {
     const { clearOpenedMenus, openedChartForIsland } = this.props;
-    const treasureCharts = LogicHelper.allTreasureCharts();
-    const triforceCharts = LogicHelper.allTriforceCharts();
 
-    const chartChunks = _.chunk([...treasureCharts, ...triforceCharts], ChartList.NUM_ROWS);
-    const arrangedCharts = _.zip(...chartChunks);
+    const chartItemFunc = (chart) => (
+      openedChartForIsland
+        ? this.mapChart(chart)
+        : this.chart(chart)
+    );
 
-    const chartType = (chart) => (openedChartForIsland ? this.mapChart(chart) : this.chart(chart));
-
-    const chartRows = _.map(arrangedCharts, (chartsRow, index) => (
-      <tr key={index}>
-        {_.map(chartsRow, (chart) => chartType(chart))}
-      </tr>
-    ));
+    const chartRows = MapTable.groupIntoChunks(
+      [
+        ...LogicHelper.ALL_TREASURE_CHARTS,
+        ...LogicHelper.ALL_TRIFORCE_CHARTS,
+      ],
+      chartItemFunc,
+      ChartList.NUM_ROWS,
+    );
 
     return (
       <MapTable

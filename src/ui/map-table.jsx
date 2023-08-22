@@ -1,9 +1,30 @@
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import ContextMenuWrapper from './context-menu-wrapper';
 import KeyDownWrapper from './key-down-wrapper';
 
 class MapTable extends React.PureComponent {
+  static MAX_COLUMNS = 3;
+
+  static groupIntoChunks(tableItems, mappingFunc, numRows = 13) {
+    const numItems = _.size(tableItems);
+    const numColumns = Math.min(
+      Math.ceil(numItems / numRows),
+      this.MAX_COLUMNS,
+    );
+    const updatedNumRows = Math.ceil(numItems / numColumns);
+    const chunks = _.chunk(tableItems, updatedNumRows);
+    const arrangedItems = _.zip(...chunks);
+
+    return _.map(arrangedItems, (tableRow, index) => (
+      <tr key={index}>
+        {_.map(tableRow, (item) => mappingFunc(item, numColumns))}
+      </tr>
+    ));
+  }
+
   constructor(props) {
     super(props);
 
@@ -27,7 +48,12 @@ class MapTable extends React.PureComponent {
     } = this.props;
 
     return (
-      <div className="zoom-map" onContextMenu={this.rightClickTable}>
+      <div
+        className="zoom-map"
+        onContextMenu={
+          ContextMenuWrapper.onRightClick(this.rightClickTable)
+        }
+      >
         <div className="zoom-map-cover" />
         <div className="zoom-map-background">
           <img src={backgroundImage} alt="" />
